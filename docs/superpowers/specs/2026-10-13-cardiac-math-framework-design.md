@@ -31,7 +31,7 @@ CURRENT_STATE.md、SOURCE_MAP.md、progress.md、verification-ledger.md 四个�
 
 ### 2.2 problems/cardiac-research/items/
 
-三个现有 task.json 不动。新增 personalization/：problem.md（第二道题）和 task.json（ready=false，enabled=false）。global-memory-queue.json、global-memory-workspace.json 从根目录移入 neural-ode-full500/。
+三个现有 task.json 不动。新增 personalization/：problem.md（第二道题）和 task.json（ready=false，enabled=false）。global-memory-queue.json、global-memory-workspace.json 留在根目录：服务器 code/NeuralODE_GlobalMemory/slurm/agent.sbatch 与 agent_check.sbatch 以 `--config global-memory-queue.json` 引用它们，队列按配置文件所在目录解析 items_dir、state_dir、project_root，挪动会全部失效。README 文件导航说明它们的用途。
 
 ### 2.3 agents/
 
@@ -60,13 +60,13 @@ CURRENT_STATE.md、SOURCE_MAP.md、progress.md、verification-ledger.md 四个�
 
 ### 2.5 templates/
 
-新建 problem.md、ideas.md、research-tree.md、claim-map.md、claim-audit-report.md。experiment.md 保留。project_template/CURRENT_STATE.md 与 ideas.md 改为新格式。cardiac-round-result.schema.json 加可选字段。
+新建 problem.md、ideas.md、research-tree.md、claim-map.md、claim-audit-report.md、CURRENT_STATE.md，与现有 experiment.md 平铺在 templates/ 下。project_template/ 目录删除，避免与平铺模板重复。cardiac-round-result.schema.json 加可选字段。
 
 ### 2.6 删除与归并
 
-删除空壳目录 index/、environments/、examples/、shared/（shared/research-progress-guide.md 改写为 protocols/progress-assessment.md）。删除 queue.ps1、queue.sh、setup.sh。PDE_BRIDGE.md、SETUP_AI_PROMPT.md、ADAPTATION_REPORT.md 的有效内容并入 README.md 后删除。archive/math-framework/ 原样保留。
+删除空壳目录 index/、environments/、examples/、shared/（shared/research-progress-guide.md 改写为 protocols/progress-assessment.md）。删除 queue.ps1、queue.sh、setup.sh。PDE_BRIDGE.md、SETUP_AI_PROMPT.md 的有效内容并入 README.md 后删除。ADAPTATION_REPORT.md 被 progress.md 与台账 ADAPT-001 引用，移到 docs/ADAPTATION_REPORT.md 原文保留，三处链接改为新路径。archive/math-framework/ 原样保留。
 
-根目录最终文件：README.md、AGENTS.md、LICENSE、.gitignore、.gitattributes、cardiac-workspace.json、research-queue.json、MANIFEST.sha256。
+根目录最终文件：README.md、AGENTS.md、LICENSE、.gitignore、.gitattributes、cardiac-workspace.json、research-queue.json、global-memory-queue.json、global-memory-workspace.json、MANIFEST.sha256。
 
 ### 2.7 入口文档
 
