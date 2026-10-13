@@ -6,7 +6,7 @@
 完成原 Agent 备份、源码/规则检查、数学专属模块归档及心脏协议改写。
 工作台最终 17 项回归、实际 AR/PCA 71 项、Direct 17 项测试通过。
 运行 doctor、run inspect-data、run smoke-ar、run smoke-direct，25 批结构预检与两次单更新成功。
-详细命令、源码哈希、日志和小型权重在工作台 runs/；汇总见 ../../ADAPTATION_REPORT.md。
+详细命令、源码哈希、日志和小型权重在工作台 runs/；汇总见 ../../docs/ADAPTATION_REPORT.md。
 只在心脏项目新增两个入口，模型源码核对未变；Slurm 两份说明处理期间发生其他更新，保留当前版本。
 用户询问修改范围，已说明属于结构性改造，尤其原自主多轮队列已归档，当前为单次实验执行器。
 本次交付不计为模型精度或个体化能力提升；下一步由用户具体实验需求驱动。
@@ -232,7 +232,7 @@ results/ar/report.md、results/ar/full/suite.json；它们不是本轮重新核�
 
 适配历史证据：源码检查；初版工作台 17 测试、AR/PCA 71 测试、Direct 17 测试通过。
 25 批真实 NPZ 结构预检、原生 inspect、AR/Direct 各一次真实网格参数更新及保存通过。
-运行路径见 verification-ledger.md，完整变更见 ../../ADAPTATION_REPORT.md。
+运行路径见 verification-ledger.md，完整变更见 ../../docs/ADAPTATION_REPORT.md。
 按用户要求，已恢复持续自动调用 Codex 的多轮研究队列，入口 tools/research_queue.py。
 原数学调度的研究包、短状态、证据、预算和恢复机制迁入心脏版；单次实验执行器作为其工具。
 每个任务的状态独立保存在 queue/<slug>/，默认 ar-pca 衔接下方既有研究目标；软件恢复验证与科学目标分开。
@@ -326,4 +326,26 @@ CPU Slurm7204基线10测试、7207真实43573节点/132区域/250未来帧有限
 只读复核results/neural_ode_full500/session_20261008/preview/pure_baseline/inference/inference_benchmark.json：Slurm7175、报告GPU RTX4090、FP32、初始化无训练权重、3例val各2预热/5重复，合并15次计时的历史编码median0.105474368s、未来积分3.502847516s、完整模型rollout3.607939594s。90例串行网络前向约324.7s（5.4分钟），60例约216.5s（3.6分钟），仅为相同固定架构/步长计算的外推，非最终权重或实际90test评估计时。
 计时覆盖历史编码、全250帧未来积分和输出堆叠；排除文件读取、归一化、H2D、模型加载、图构造、真值/指标/绘图/有限性检查和Slurm排队。完整评估还会逐例算场/事件/形状并写指标，不能直接等同5.4分钟。旧另一版图ODE/另一硬件90例完整评估曾1119.5–1125.4s，不能作为当前版本总时间。训练近期200更新约23分钟，即约7s/更新，100000更新仅训练就约8天；测试无反向/优化器/训练重算，但完整未来仍有2000次RHS，训练完成不会自动减少固定步长计算量。
 正式500轮manifest安排best测速与60val，无自动90test；当前500轮权重尚未完整评估。本次只读核查，无新测试/训练提交或作业变更。
-
+
+## 2026-10-13 从 CURRENT_STATE 移出的记录
+
+工作台重建为数学框架时，以下段落逐字从 CURRENT_STATE.md 移到这里；短状态改为模板分节格式。
+
+2026-10-10：按用户要求新增独立 code/NeuralODE_BoundaryMemory/，将区域内部及各界面的动态/位置特征融合进原24维H，无独立E状态。CPU Slurm7204基线10测试、7207真实43,573节点/132区域完整250帧预测与重载/记忆梯度检查、7208最终23测试均通过。19,335条跨区域细边/675个有向界面，90,568参数（约+1.4%）。原Pure源码未改，九组冻结训练未改。真实数据0优化更新，无新精度或GPU时延结论，未追加第十组正式训练；证据results/neural_ode_boundary_memory/session_20261009_2047/。hard保证仅固定drive下的H方程，新drive经du/dt依赖H，非闭环稳定保证。
+
+2026-10-10耗时核查（只读，非实测profiling）：暖身后每轮平均93.2输出帧、每帧2个1ms RK4步，200更新共149120次全图RHS/447360次细图乘，仅计未来前向；嵌套checkpoint使反向额外重算。loss_nodes4096不减少43573节点积分，当前基线无H。按近期23–35分钟训练/轮外推，单组500轮训练约8–12天，另有验证/评估与资源波动；九组串行需重新评估预算。未改积分步长、预算、模型或作业。
+
+2026-10-10用户确认新时间目标为单组500×200及验证一天。建议独立轻量全图候选：2ms Heun RK2、h32、一图层、单层区间checkpoint；保留完整未来梯度和窗口。静态前向RHS少4倍、图聚合调用少6倍；整体提速未测。目标完整混合200更新≤144s，预留验证/评估时间。仅方案记录（experiments.md neural-ode-one-day），未修改模型/当前作业或追加正式训练。
+
+2026-10-13训练/测试耗时核对：10/8同架构Pure基线初始化权重GPU预览（RTX4090，3例val×5重复）历史编码0.105474s、未来积分3.502848s、合计3.607940s/例；90例串行网络前向外推约5.4分钟，60例约3.6分钟，不含I/O/归一化/传输/加载/指标/绘图/排队。非当前500轮最终权重或完整90test实测；当前正式脚本自动安排60val及测速，90test尚未执行。证据session_20261008/preview/pure_baseline/inference/inference_benchmark.json。
+
+2026-09-29 最新执行要求：所有项目代码（含研究队列、训练、评估、数据分析、绘图及 CPU/GPU 测试）统一通过 254 服务器 Slurm 排队执行，本机与登录节点只做文件操作、SSH、传输和作业提交/查询。下文的本地实验均为历史记录；本要求不扩大已有训练预算。
+
+2026-09-29：独立研究任务 `neural-ode` 已注册，入口 `problems/cardiac-research/items/neural-ode/task.json`；尚未启动队列。接续第四轮原始结果，优先诊断重复激活、时序和早期 Ca。项目 `results/neural_ode/session_20260916/report.md`、`budget.json`、第四轮 `test_run.json` 已记录训练及 90 例评估结束；下文“第四轮正在运行”为历史。原 4 个训练名额已用尽，新任务不重置预算。
+
+### 固定事实与协议（移出时原文）
+
+此工作台位于项目内（2026-10-09 改名 cardiac-workspace）。主线 TC_GCN_server 的 AR/PCA；FBNO_time_forecast 为直接时间查询对照；Neural ODE 分支见 SOURCE_MAP。配置 ../../cardiac-workspace.json。
+v10 是二维 CRN 合成数据，几何形变未进动力学；21 维完整初态只保留 V/Ca 观测；数据按完整批次 20/2/3 切分；观测至 500 ms、未来 502–1000 ms；训练监督与验证选模时间范围各自记录。合成预测不等于患者个体化验证。
+自动 Codex 队列（tools/research_queue.py）至今未真实运行，CLI 未登录；所有记录由交互会话维护。Windows 用 Python 主入口，queue.ps1 受执行策略限制。
+2026-10-09 整理：ar-pca、neural-ode 任务已停用；当前任务 neural-ode-full500。9/16 适配段、AR/PCA 衔接段、9/17 Neural ODE 段与迁移包段原文已移入 progress.md。
