@@ -1,0 +1,198 @@
+{
+  "schema_version": 1,
+  "project_root": "..",
+  "data_dir": "dataset/750sample/batch_v10/data",
+  "runs_dir": "runs",
+  "threads": 2,
+  "entrypoints": [
+    "code/DATASET/total_generator_normalize_v10.py",
+    "code/TC_GCN_server/main.py",
+    "code/TC_GCN_server/run_pca.py",
+    "code/TC_GCN_server/ar_experiments.py",
+    "code/FBNO_time_forecast/main.py",
+    "slurm/README.md"
+  ],
+  "source_roots": [
+    "code/TC_GCN_server",
+    "code/FBNO_time_forecast",
+    "code/DATASET"
+  ],
+  "expected_data": {
+    "batches": 25,
+    "samples_per_batch": 30,
+    "frames": 1001,
+    "nodes": 43573
+  },
+  "tasks": {
+    "server-tests": {
+      "description": "TC_GCN_server 的 AR/PCA、协议和结果处理回归测试",
+      "cwd": "code/TC_GCN_server",
+      "argv": [
+        "{python}",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        ".",
+        "-p",
+        "test_*.py",
+        "-v"
+      ],
+      "dependencies": [
+        "torch",
+        "numpy",
+        "scipy",
+        "matplotlib"
+      ],
+      "requires_data": false,
+      "timeout_seconds": 300
+    },
+    "direct-tests": {
+      "description": "FBNO_time_forecast 直接时间查询、未来标签隔离与预测回归测试",
+      "cwd": "code/FBNO_time_forecast",
+      "argv": [
+        "{python}",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        ".",
+        "-p",
+        "test_*.py",
+        "-v"
+      ],
+      "dependencies": [
+        "torch",
+        "numpy",
+        "scipy"
+      ],
+      "requires_data": false,
+      "timeout_seconds": 300
+    },
+    "inspect-data": {
+      "description": "用服务器版原生 inspect 检查真实数据接口与参考图",
+      "cwd": "code/TC_GCN_server",
+      "argv": [
+        "{python}",
+        "-B",
+        "main.py",
+        "--mode",
+        "inspect",
+        "--data-dir",
+        "{data_dir}",
+        "--device",
+        "cpu"
+      ],
+      "dependencies": [
+        "torch",
+        "numpy",
+        "scipy"
+      ],
+      "requires_data": true,
+      "timeout_seconds": 180
+    },
+    "smoke-ar": {
+      "description": "真实网格的一次小型 AR 参数更新与 checkpoint 保存，仅实现检查",
+      "cwd": "code/TC_GCN_server",
+      "argv": [
+        "{python}",
+        "-B",
+        "main.py",
+        "--mode",
+        "train",
+        "--data-dir",
+        "{data_dir}",
+        "--output-dir",
+        "{run_dir}/artifacts",
+        "--device",
+        "cpu",
+        "--seed",
+        "20260903",
+        "--supervision-end-ms",
+        "500",
+        "--strict-validation",
+        "--epochs",
+        "1",
+        "--steps-per-epoch",
+        "1",
+        "--pretrain-epochs",
+        "1",
+        "--warmup-epochs",
+        "0",
+        "--unroll-steps",
+        "2",
+        "--history-steps",
+        "4",
+        "--width",
+        "8",
+        "--graph-layers",
+        "1",
+        "--loss-nodes",
+        "128",
+        "--val-cases",
+        "0",
+        "--save-every",
+        "1"
+      ],
+      "dependencies": [
+        "torch",
+        "numpy",
+        "scipy"
+      ],
+      "requires_data": true,
+      "timeout_seconds": 300
+    },
+    "smoke-direct": {
+      "description": "真实网格的一次小型直接预测参数更新与 checkpoint 保存，仅实现检查",
+      "cwd": "code/FBNO_time_forecast",
+      "argv": [
+        "{python}",
+        "-B",
+        "main.py",
+        "--mode",
+        "train",
+        "--data-dir",
+        "{data_dir}",
+        "--output-dir",
+        "{run_dir}/artifacts",
+        "--device",
+        "cpu",
+        "--seed",
+        "20260903",
+        "--epochs",
+        "1",
+        "--steps-per-epoch",
+        "1",
+        "--width",
+        "8",
+        "--graph-layers",
+        "1",
+        "--moment-dim",
+        "4",
+        "--history-frames",
+        "4",
+        "--recent-history-frames",
+        "2",
+        "--backprop-history-steps",
+        "2",
+        "--queries-per-sample",
+        "1",
+        "--loss-nodes",
+        "128",
+        "--val-cases",
+        "0",
+        "--save-every",
+        "1"
+      ],
+      "dependencies": [
+        "torch",
+        "numpy",
+        "scipy"
+      ],
+      "requires_data": true,
+      "timeout_seconds": 300
+    }
+  }
+}

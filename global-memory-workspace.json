@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "project_root": "..",
+  "data_dir": "dataset",
+  "runs_dir": "runs/global-memory",
+  "threads": 4,
+  "entrypoints": ["code/NeuralODE_GlobalMemory/main.py", "code/NeuralODE_GlobalMemory/global_memory.py"],
+  "source_roots": ["code/NeuralODE_GlobalMemory"],
+  "expected_data": {"batches":25,"samples_per_batch":30,"frames":1001,"nodes":43573},
+  "tasks": {
+    "global-tests": {
+      "description":"独立空间记忆模型测试；仅在254 Slurm分配内调用",
+      "cwd":"code/NeuralODE_GlobalMemory",
+      "argv":["{python}","-B","-m","unittest","discover","-s",".","-p","test_*.py","-v"],
+      "dependencies":["torch","numpy","scipy"],"requires_data":false,"timeout_seconds":300
+    }
+  }
+}

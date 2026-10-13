@@ -1,0 +1,32 @@
+{
+  "slug": "neural-ode-full500",
+  "title": "九组 Neural ODE 500×200 正式训练、验证与测速",
+  "objective": "接续 results/neural_ode_full500/session_20261009_recovery/ 的九组正式训练（旧六组 baseline/scratch_baseline/multi/scratch_multi/multi_hard/scratch_multi_hard + NeuralODE_Pure 三组无H/有H/hard），每组 500 epoch×200 = 100000 更新、单卡串行。核对 Slurm 7184–7187 的实际终态，收齐每组 best 的 60 例验证指标、PNG 与推理测速，与 AR 七组审计和第四轮 Neural ODE 做配对比较，交付可复现的研究报告。首轮先核对作业与冻结源码，不重复提交、不追加训练组。",
+  "scope": "权威配置与证据：results/neural_ode_full500/session_20261009_recovery/（冻结模型与父 session_20261008 哈希一致）及其 Slurm 状态文件；旧 7175/7176/7177 已被替代，保持原状、不解除依赖、不取消或修改。源码在 code/NeuralODE_Experiments/；不修改 code/NeuralODE/、code/NeuralODE_GlobalMemory/、code/NeuralODE_Pure/、code/TC_GCN_server/、正式权重与原始数据。新产物只写 session_20261009_recovery/ 下独立子目录，队列日志在 artifacts/。\n所有项目代码（含测试、评估、绘图、汇总脚本）必须在 254 服务器 Slurm 分配内执行；本机/登录节点只做文件操作、传输、提交及查询。服务器项目 /data1/mhl/PDE 心脏代码2，Python /opt/miniconda3/bin/python。无新增训练预算：九组各 100000 更新即本轮全部训练，失败组只记录不重跑，除非用户另行授权。\n数据完整文件 20/2/3 批划分；正式预测输入仅 0–500 ms，每 2 ms 输出 V/Ca 至 1000 ms；训练标签可到 1000 ms，验证选模 502–1000 ms，三者分别记录。测速固定 3 例、2 预热、5 重复、CUDA 同步，记编码/积分/总时延与峰值显存，排除 IO；确定性校验（CUBLAS_WORKSPACE_CONFIG=:4096:8）与计时模式分别记录；旧 7175 预览测速为未训练权重，不与训练后结果混用。\n当前为二维 CRN 合成数据，变形坐标未进动力学，不宣称患者个体化；旧测试集已用于开发，不宣称新盲测。AR 七组为严格 ≤500 ms 监督/选模，ODE 组监督至 1000 ms，比较时必须写明协议差异；不以低 RMSE 单独判优，必须同时看激活/下降 F1、波前误差与 PNG。不启动递归队列或多 Agent，不复制登录凭据。",
+  "ready": true,
+  "enabled": true,
+  "priority": 20,
+  "max_rounds": 0,
+  "acceptance": [
+    {
+      "id": "C1",
+      "description": "实时核对 7184/7185/7186/7187 终态与 session_20261009_recovery 冻结源码哈希；九组各 100000 更新完成或逐组记录具体失败原因与作业号；旧 7176/7177 未被改动。"
+    },
+    {
+      "id": "C2",
+      "description": "每组 best 的 60 例验证指标收齐：全窗与晚期 V/Ca 误差、波前误差、激活/下降 F1、活动区域 Dice、轮廓距离，附 PNG 与 summary；记录 best 轮次、更新数、耗时与参数量。"
+    },
+    {
+      "id": "C3",
+      "description": "九组训练后 best 权重的推理测速完成（3 例、2 预热、5 重复、CUDA 同步、峰值显存），确定性校验通过或记录差异；与旧 7175 预览测速分开列表。"
+    },
+    {
+      "id": "C4",
+      "description": "与 AR 七组审计（results/ar/audit_20261008/summary.json）及第四轮 Neural ODE 做配对比较，写明监督窗口与选模协议差异及测试集开发暴露；预训练与从零、有无 H、硬约束的差异分别报告，收益与退化都记录。"
+    },
+    {
+      "id": "C5",
+      "description": "交付研究报告：命令、配置、种子、数据划分、源码/权重哈希、用量、原始指标与 PNG 路径；区分执行成功、数值证据与预测结论；任一组失败、预算耗尽或缺授权不得标记整个研究完成。"
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "schema_version":1,
+  "workspace_config":"global-memory-workspace.json",
+  "items_dir":"problems/cardiac-research/items",
+  "state_dir":"projects/cardiac-ep/queue",
+  "runtime_dir":"runs/global-memory-queue",
+  "codex_command":["/data1/mhl/PDE 心脏代码2/results/neural_ode_global_memory/session_20260930/agent_tools/package/vendor/x86_64-unknown-linux-musl/bin/codex"],
+  "model":"gpt-6-astra",
+  "reasoning_effort":"ultra",
+  "web_search":false,
+  "max_rounds":0,
+  "max_wall_hours":6,
+  "round_timeout_minutes":30,
+  "max_tokens":0,
+  "idle_seconds":60,
+  "poll_seconds":60,
+  "max_consecutive_runtime_failures":2,
+  "max_no_progress_rounds":2,
+  "packet_max_bytes":49152
+}

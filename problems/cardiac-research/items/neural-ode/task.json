@@ -1,0 +1,32 @@
+{
+  "slug": "neural-ode",
+  "title": "无 PCA 图 Neural ODE：传播与恢复研究",
+  "objective": "接续现有无 PCA 图 Neural ODE，联合自由预测全部节点 502–1000 ms 的 V/Ca 空间场。优先诊断重复激活、事件时序和早期 Ca 误差，在保留第四轮场误差及恢复改善的基础上，完成有证据支持的实现与授权实验，达到既有对照验收。首轮先核对第四轮原始结果和预算，再选择可检验假设；不重复已完成训练，不把任务注册或测试通过当作科学目标完成。",
+  "scope": "先读项目 docs/neural_ode/design.md、results/neural_ode/session_20260916/report.md 和 budget.json，再核对 round_4_graph_memory_bce 下的 selection.json、test_run.json、test_all90/comparison.json、final_checks.json（路径均相对上述 session 目录）。CURRENT_STATE 中“第四轮未启动/评估正在运行”为历史，原始终态记录和当前证据优先；旧 PID 不代表当前运行。\n源码入口为 code/TC_GCN_server/graph_neural_ode.py、main.py、verify_graph_ode.py、evaluate_graph_ode.py；实验与比较入口为 analysis/scripts/graph_ode_pilot.py、compare_neural_ode.py、diagnose_graph_ode_events.py。保留当前 Git diff、正式权重、冻结源码和原始数据，新科学产物用 results/neural_ode/ 内独立目录；本轮日志在队列 artifacts/。队列 worker 通过结构化结果交给 runner 更新任务状态。\n不使用 PCA；V/Ca 与记忆状态在未来共同 ODE 积分，禁止真值回灌或用 full_init 离子状态作为测试输入。沿用完整样本 20/2/3 批划分；观测/测试输入 0–500 ms，预测 502–1000 ms、2 ms 输出。训练标签可至 1000 ms，验证可用未来窗口选模，两者与测试输入边界分别记录。只在训练/验证数据上决定候选和选模，测试前固定权重与评估配置；承认既有测试集已被诊断使用。与旧 AR 的监督/选模协议不同，部署比较不能单独证明架构因果。\n2026-09-29 用户明确要求：凡运行项目代码（含研究队列、测试、训练、评估、绘图、预处理及结果分析脚本），一律在 254 服务器通过 Slurm 排队取得资源后执行；CPU、GPU 和短测试都适用，不在本机或登录节点直接运行。本地与登录节点可读取/编辑文件、SSH、传输及提交/查询作业。任务可先做静态源码与已有结果检查、准备实现；需要执行代码时按此规则排队。本要求不新增训练预算。历史预算为累计 4 轮短训练、21600 秒、单卡；budget.json 已记录训练名额用尽，不能因新建任务或队列 max_rounds 重置。新的训练先形成可审查方案，取得明确追加预算后再执行；已授权工作先完成，确有缺口才报告。GPU 评价沿用实际剩余预算并计账；不自动重跑全 90 例。作业提交沿用当前具体任务和预算授权；不擅自取消或改动既有作业。不递归启动队列或多 Agent。\nv10 为二维 CRN 合成数据，形变坐标未进入动力学；记忆变量不解释为真实离子状态，结果不宣称患者个体化。不得因指标未达标修改原验收定义。",
+  "ready": true,
+  "enabled": false,
+  "priority": 10,
+  "max_rounds": 0,
+  "acceptance": [
+    {
+      "id": "C1",
+      "description": "核对第四轮训练、选模、完整 90 例自由预测、配对 AR/persistence、源码/权重哈希及预算；区分历史摘要和终态证据，形成可复现的基线与失败定位。"
+    },
+    {
+      "id": "C2",
+      "description": "基于训练/验证证据提出并实现针对传播、重复激活、时序或早期 Ca 的可检验改动；有适用测试及授权实验原始记录，明确控制变量或联合改动限制，不能只提交计划。"
+    },
+    {
+      "id": "C3",
+      "description": "核验连续 V/Ca/记忆联合积分、未来标签遮蔽、500 ms 锚点、保存重载、梯度与步长敏感性；检查真实网格完整预测有限性，分别记录训练监督、验证选模与测试输入边界。"
+    },
+    {
+      "id": "C4",
+      "description": "测试前固定候选及配置，在同一 90 例全部未来帧上完成独立输出的配对评价；沿用 analysis/scripts/compare_neural_ode.py 原门槛：全窗及晚期两通道场误差低于 AR 和 persistence，波前误差低于 AR，激活与下降 F1 均高于 AR，numeric_gate_passed=true。另核查 PNG 中传播/恢复，报告相对第四轮及早期 Ca 的退化，禁止以平滑场或仅低 RMSE 判定成功。"
+    },
+    {
+      "id": "C5",
+      "description": "交付带命令、配置、种子、数据划分、源码/权重哈希、用量、原始指标和 PNG 的研究报告；区分执行成功、数值证据和预测结论，说明测试集开发暴露及协议差异。失败、预算耗尽或缺授权不得标记整个研究已完成。"
+    }
+  ]
+}

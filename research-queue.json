@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "workspace_config": "cardiac-workspace.json",
+  "items_dir": "problems/cardiac-research/items",
+  "state_dir": "projects/cardiac-ep/queue",
+  "runtime_dir": "runs/research-queue",
+  "codex_command": [],
+  "model": "",
+  "reasoning_effort": "",
+  "web_search": false,
+  "max_rounds": 0,
+  "max_wall_hours": 24,
+  "round_timeout_minutes": 90,
+  "max_tokens": 0,
+  "idle_seconds": 60,
+  "poll_seconds": 60,
+  "max_consecutive_runtime_failures": 3,
+  "max_no_progress_rounds": 3,
+  "packet_max_bytes": 49152
+}

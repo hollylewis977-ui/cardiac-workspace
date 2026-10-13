@@ -1,0 +1,243 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+WORKSPACE_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
+EXPORT_ROOT="$WORKSPACE_ROOT/exports"
+timestamp="$(date +%Y%m%d-%H%M%S)"
+package_name="graph-geometry-framework-$timestamp"
+export_python="${PYTHON_BIN:-python3}"
+if ! command -v "$export_python" >/dev/null 2>&1; then
+  echo "错误：导出框架需要 Python 3。" >&2
+  exit 1
+fi
+research_root="$(cd "$WORKSPACE_ROOT/.." && pwd -P)"
+package_rethlas_root="${RETHLAS_ROOT:-$research_root/Rethlas}"
+package_conda_root="${CONDA_ROOT:-}"
+if [[ -z "$package_conda_root" ]] && command -v conda >/dev/null 2>&1; then
+  package_conda_root="$(conda info --base 2>/dev/null || true)"
+fi
+if [[ -z "$package_conda_root" ]]; then
+  configured_conda="$(sed -n 's|^CONDA_ROOT="${CONDA_ROOT:-\(.*\)}"$|\1|p' \
+    "$WORKSPACE_ROOT/tools/conjecture_queue.sh" | head -n 1)"
+  if [[ -n "$configured_conda" ]]; then
+    package_conda_root="$configured_conda"
+  fi
+fi
+
+mkdir -p "$EXPORT_ROOT"
+stage_root="$(mktemp -d "$EXPORT_ROOT/.stage.XXXXXX")"
+package_root="$stage_root/$package_name"
+verification_root=""
+
+cleanup() {
+  rm -rf "$stage_root"
+  if [[ -n "$verification_root" ]]; then
+    rm -rf "$verification_root"
+  fi
+}
+trap cleanup EXIT
+
+copy_file() {
+  local source="$1"
+  local destination="$2"
+  mkdir -p "$(dirname "$package_root/$destination")"
+  install -m 0644 "$WORKSPACE_ROOT/$source" "$package_root/$destination"
+}
+
+copy_executable() {
+  local source="$1"
+  local destination="$2"
+  mkdir -p "$(dirname "$package_root/$destination")"
+  install -m 0755 "$WORKSPACE_ROOT/$source" "$package_root/$destination"
+}
+
+mkdir -p "$package_root"
+# Publish only the reviewed, reusable writing skill resources.
+copy_file ".agents/skills/math-paper-study-guide/SKILL.md" ".agents/skills/math-paper-study-guide/SKILL.md"
+copy_file ".agents/skills/math-paper-study-guide/agents/openai.yaml" ".agents/skills/math-paper-study-guide/agents/openai.yaml"
+copy_file ".agents/skills/math-paper-study-guide/assets/main-study-zh-template.tex" ".agents/skills/math-paper-study-guide/assets/main-study-zh-template.tex"
+copy_file ".agents/skills/math-paper-study-guide/references/chinese-study-edition-method.md" ".agents/skills/math-paper-study-guide/references/chinese-study-edition-method.md"
+copy_file ".agents/skills/math-paper-writing/SKILL.md" ".agents/skills/math-paper-writing/SKILL.md"
+copy_file ".agents/skills/math-paper-writing/agents/openai.yaml" ".agents/skills/math-paper-writing/agents/openai.yaml"
+copy_file ".agents/skills/math-paper-writing/references/evaluation-baseline.md" ".agents/skills/math-paper-writing/references/evaluation-baseline.md"
+copy_file ".agents/skills/math-paper-writing/references/evaluation-suite.md" ".agents/skills/math-paper-writing/references/evaluation-suite.md"
+copy_file ".agents/skills/math-paper-writing/references/exposition-and-structure.md" ".agents/skills/math-paper-writing/references/exposition-and-structure.md"
+copy_file ".agents/skills/math-paper-writing/references/figures-tables-and-diagrams.md" ".agents/skills/math-paper-writing/references/figures-tables-and-diagrams.md"
+copy_file ".agents/skills/math-paper-writing/references/humanizer-interface.md" ".agents/skills/math-paper-writing/references/humanizer-interface.md"
+copy_file ".agents/skills/math-paper-writing/references/latex-and-bilingual-writing.md" ".agents/skills/math-paper-writing/references/latex-and-bilingual-writing.md"
+copy_file ".agents/skills/math-paper-writing/references/mathematical-integrity.md" ".agents/skills/math-paper-writing/references/mathematical-integrity.md"
+copy_file ".agents/skills/math-paper-writing/references/sources.md" ".agents/skills/math-paper-writing/references/sources.md"
+copy_file ".agents/skills/math-paper-writing/references/submission-and-peer-review.md" ".agents/skills/math-paper-writing/references/submission-and-peer-review.md"
+copy_file ".agents/skills/math-paper-writing/references/voice-and-genre.md" ".agents/skills/math-paper-writing/references/voice-and-genre.md"
+copy_file ".agents/skills/math-paper-writing/scripts/check_skill_resources.py" ".agents/skills/math-paper-writing/scripts/check_skill_resources.py"
+
+copy_file "agents/core/research-core.md" "agents/core/research-core.md"
+copy_file "agents/core/queue-core.md" "agents/core/queue-core.md"
+copy_file "agents/protocols/computation.md" "agents/protocols/computation.md"
+copy_file "agents/protocols/counterexample-audit.md" "agents/protocols/counterexample-audit.md"
+copy_file "agents/protocols/escalation.md" "agents/protocols/escalation.md"
+copy_file "agents/protocols/explore.md" "agents/protocols/explore.md"
+copy_file "agents/protocols/literature-check.md" "agents/protocols/literature-check.md"
+copy_file "agents/protocols/multi-agent.md" "agents/protocols/multi-agent.md"
+copy_file "agents/protocols/proof-audit.md" "agents/protocols/proof-audit.md"
+copy_file "agents/protocols/round-result.md" "agents/protocols/round-result.md"
+copy_file "tools/research_runtime.py" "tools/research_runtime.py"
+copy_file "tools/research_progress.py" "tools/research_progress.py"
+copy_file "tools/tests/test_research_runtime.py" "tools/tests/test_research_runtime.py"
+copy_file "tools/tests/test_research_progress.py" "tools/tests/test_research_progress.py"
+copy_file "shared/runtime-v2-guide.md" "shared/runtime-v2-guide.md"
+copy_file "shared/research-progress-guide.md" "shared/research-progress-guide.md"
+copy_file "AGENTS.md" "AGENTS.md"
+copy_file "LICENSE" "LICENSE"
+copy_file "agents/instructions/research-workflow.md" "agents/instructions/research-workflow.md"
+copy_file "agents/instructions/queue-and-escalation.md" "agents/instructions/queue-and-escalation.md"
+copy_file "agents/instructions/paper-writing.md" "agents/instructions/paper-writing.md"
+copy_file ".gitignore" ".gitignore"
+copy_file "TEACHER_FRAMEWORK_HANDOFF.md" "README.md"
+copy_file "TEACHER_FRAMEWORK_HANDOFF.md" "TEACHER_FRAMEWORK_HANDOFF.md"
+copy_file "TEACHER_SETUP_README.md" "TEACHER_SETUP_README.md"
+copy_file "RETHLAS使用教程.md" "RETHLAS使用教程.md"
+copy_file "SETUP_AI_PROMPT.md" "SETUP_AI_PROMPT.md"
+copy_file "TEACHER_QUEUE_QUICKSTART.md" "TEACHER_QUEUE_QUICKSTART.md"
+copy_executable "setup.sh" "setup.sh"
+copy_executable "queue.sh" "queue.sh"
+copy_file "problems/readme.md" "problems/readme.md"
+copy_file "problems/important-conjectures/README.md" "problems/important-conjectures/README.md"
+copy_file "problems/important-conjectures/runner.toml" "problems/important-conjectures/runner.toml"
+copy_file "templates/important-conjecture/problem.md" "templates/important-conjecture/problem.md"
+copy_file "templates/important-conjecture/config.toml" "templates/important-conjecture/config.toml"
+copy_file "templates/blind-research-packet.md" "templates/blind-research-packet.md"
+copy_file "templates/project_template/ideas.md" "templates/project_template/ideas.md"
+copy_file "templates/project_template/CURRENT_STATE.md" "templates/project_template/CURRENT_STATE.md"
+copy_file "templates/research-visualization.md" "templates/research-visualization.md"
+copy_file "templates/rethlas-problem.md" "templates/rethlas-problem.md"
+copy_executable "tools/conjecture_queue.py" "tools/conjecture_queue.py"
+copy_executable "tools/conjecture_queue.sh" "tools/conjecture_queue.sh"
+copy_file "tools/tests/test_conjecture_queue.py" "tools/tests/test_conjecture_queue.py"
+copy_file "tools/tests/test_workspace_hygiene.py" "tools/tests/test_workspace_hygiene.py"
+copy_executable "tools/workspace_hygiene.py" "tools/workspace_hygiene.py"
+copy_executable "tools/project_state.py" "tools/project_state.py"
+copy_executable "tools/update_manifest.py" "tools/update_manifest.py"
+copy_file "tools/tests/test_project_state.py" "tools/tests/test_project_state.py"
+copy_file "tools/tests/test_update_manifest.py" "tools/tests/test_update_manifest.py"
+copy_executable "tools/configure_teacher_workspace.sh" "tools/configure_teacher_workspace.sh"
+copy_executable "tools/verify_teacher_framework.sh" "tools/verify_teacher_framework.sh"
+copy_executable "tools/export_teacher_framework.sh" "tools/export_teacher_framework.sh"
+
+for script in "$WORKSPACE_ROOT"/tools/rethlas/*.sh; do
+  copy_executable "${script#"$WORKSPACE_ROOT/"}" "${script#"$WORKSPACE_ROOT/"}"
+done
+
+while IFS= read -r example; do
+  relative="${example#"$WORKSPACE_ROOT/"}"
+  copy_file "$relative" "$relative"
+done < <(find "$WORKSPACE_ROOT/examples" -type f -print | sort)
+
+empty_dirs=(
+  "problems/important-conjectures/items"
+  "projects"
+  "archive"
+  "index"
+  "library/definitions"
+  "library/theorems"
+  "library/examples"
+  "library/counterexamples"
+  "shared/references"
+  "shared/datasets"
+  "shared/papers"
+  "agents/important-conjectures"
+  "environments"
+)
+for relative in "${empty_dirs[@]}"; do
+  mkdir -p "$package_root/$relative"
+  : > "$package_root/$relative/.gitkeep"
+done
+
+"$export_python" - "$package_root" "$WORKSPACE_ROOT" "$research_root" \
+  "$package_conda_root" "$package_rethlas_root" <<'PY'
+from pathlib import Path
+import re
+import sys
+
+package_root = Path(sys.argv[1])
+source_root = sys.argv[2]
+research_root = sys.argv[3]
+conda_root = sys.argv[4]
+rethlas_root = sys.argv[5]
+replacements = [
+    (source_root, "__WORKSPACE_ROOT__"),
+    (rethlas_root, "__RETHLAS_ROOT__"),
+    (conda_root, "__CONDA_ROOT__"),
+    (research_root, "__RESEARCH_ROOT__"),
+]
+replacements = [(old, new) for old, new in replacements if old]
+suffixes = {".md", ".sh", ".py", ".toml"}
+for path in package_root.rglob("*"):
+    if not path.is_file() or path.suffix not in suffixes:
+        continue
+    if path.relative_to(package_root).as_posix() == "tools/verify_teacher_framework.sh":
+        continue
+    content = path.read_text(encoding="utf-8")
+    for old, new in replacements:
+        content = content.replace(old, new)
+    path.write_text(content, encoding="utf-8")
+
+runner_config = package_root / "problems/important-conjectures/runner.toml"
+content = runner_config.read_text(encoding="utf-8")
+generic_values = {
+    "session_name": '"important_conjectures"',
+    "max_wall_hours": "24",
+    "information_mode": '""',
+    "web_search": "false",
+}
+for key, value in generic_values.items():
+    content, count = re.subn(
+        rf"(?m)^{re.escape(key)}\s*=.*$", f"{key} = {value}", content
+    )
+    if count != 1:
+        raise SystemExit(f"cannot normalize runner setting: {key}")
+runner_config.write_text(content, encoding="utf-8")
+PY
+
+"$export_python" "$package_root/tools/update_manifest.py" write
+
+PYTHON_BIN="$export_python" \
+  "$package_root/tools/verify_teacher_framework.sh" --distribution
+
+archive_path="$EXPORT_ROOT/$package_name.tar.gz"
+tar -C "$stage_root" -czf "$archive_path" "$package_name"
+"$export_python" - "$archive_path" "$archive_path.sha256" <<'PY'
+from hashlib import sha256
+from pathlib import Path
+import sys
+
+archive = Path(sys.argv[1])
+checksum = Path(sys.argv[2])
+digest = sha256(archive.read_bytes()).hexdigest()
+checksum.write_text(f"{digest}  {archive.name}\n", encoding="utf-8")
+if sha256(archive.read_bytes()).hexdigest() != digest:
+    raise SystemExit("archive checksum verification failed")
+print(f"{archive.name}: OK")
+PY
+
+verification_root="$(mktemp -d "$EXPORT_ROOT/.verify.XXXXXX")"
+tar -C "$verification_root" -xzf "$archive_path"
+extracted_root="$verification_root/$package_name"
+PYTHON_BIN="$export_python" \
+  "$extracted_root/tools/verify_teacher_framework.sh" --distribution
+CONDA_ROOT="$package_conda_root" \
+RETHLAS_ROOT="$package_rethlas_root" \
+  "$extracted_root/setup.sh" --check
+PYTHON_BIN="$export_python" "$extracted_root/tools/verify_teacher_framework.sh"
+if command -v codex >/dev/null 2>&1 && command -v tmux >/dev/null 2>&1; then
+  "$extracted_root/tools/conjecture_queue.sh" doctor
+  runtime_check="queue doctor passed"
+else
+  runtime_check="queue doctor skipped because Codex or tmux is unavailable"
+fi
+
+echo "已生成：$archive_path"
+echo "校验文件：$archive_path.sha256"
+echo "内容清单：$package_name/MANIFEST.sha256"
+echo "本包使用严格白名单，不包含 projects/archive/shared 等目录中的任何研究数据。"
+echo "已完成解压、路径配置和结构检查；$runtime_check。"
