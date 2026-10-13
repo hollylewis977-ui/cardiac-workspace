@@ -25,7 +25,7 @@ class WorkspaceTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
-        self.root = Path(self.temp.name)
+        self.root = Path(self.temp.name).resolve()
         self.workspace = self.root / "agent space"
         self.workspace.mkdir()
         self.project = self.root / "PDE \u5fc3\u810f code"
