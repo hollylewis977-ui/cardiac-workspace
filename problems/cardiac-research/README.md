@@ -25,7 +25,7 @@ stop 等当前回合保存状态后退出；强制关闭进程则下次启动识
 无 --slug 时公平轮转全部 ready 任务。已完成/阻塞的任务不会冻结其他任务。
 
 本机 PowerShell 策略可能禁止 .ps1，请使用上述 Python 入口；
-Linux/WSL 可 bash queue.sh start。后台运行不要求 tmux，不改系统执行策略。
+后台运行不要求 tmux，不改系统执行策略。
 
 ## Neural ODE 任务
 

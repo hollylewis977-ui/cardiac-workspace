@@ -23,6 +23,3 @@ jobs:
         run: python tools/update_manifest.py check
       - name: Run workspace tests
         run: python -m unittest discover -s tools/tests -v
-      - name: Check shell syntax
-        if: runner.os == 'Linux'
-        run: bash -n setup.sh queue.sh

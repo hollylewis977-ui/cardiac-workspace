@@ -1,5 +1,5 @@
-# 研究流程索引
+# 心脏研究协议索引
 
-数学框架层：problem.md → CURRENT_STATE.md → ideas.md / research-tree.md → claim-map.md → verification-ledger.md → progress.md。规则在 agents/core/research-core.md；探索 protocols/explore.md；认证 protocols/claim-audit.md、failure-case-audit.md；独立复核 protocols/independent-replication.md；进展判定 protocols/progress-assessment.md；文献 protocols/literature-check.md。
-计算实验层：代码 protocols/computation.md，数据协议 protocols/data-validation.md，预测与个体化评价 protocols/model-validation.md，队列回合 core/queue-core.md 与 protocols/round-result.md。
-模板在 templates/，定义在 library/definitions/。实际源码在配置指定的心脏项目，已有改动优先保留。
+先读 `agents/core/research-core.md`，按任务读 `agents/protocols/` 下 explore、claim-audit、failure-case-audit、independent-replication、progress-assessment、literature-check、computation、data-validation、model-validation 或 multi-agent。已在研究包中提供的正文不重复读取；候选完整结果与失效案例必须转认证。
+
+长期状态、文件目录与权限以根 AGENTS.md 为准。正式题目在 `projects/cardiac-ep/problem.md`，方法族与实验卡在 `ideas.md`，路线在 `research-tree.md`，命题依赖与缺口在 `claim-map.md`，证据等级在 `verification-ledger.md`，文献对照在 `references.md`。模板见 `templates/`，定义见 `library/definitions/`。队列回合收尾见 `agents/protocols/round-result.md`，手工回合仍须保存 progress、实质结果台账和短状态。实际源码在配置指定的心脏项目，已有改动优先保留。

@@ -8,7 +8,7 @@
 | RUN-002 | partial-result | Direct 现有 17 项测试通过 | code：../../runs/20260916T053532-direct-tests-4d38658f/run.json 及 stderr.log | 不是多病例正式预测 |
 | DATA-001 | partial-result | 25 批结构预检及原生数据接口成功 | data/structural：../../runs/adaptation-validation/doctor.json；../../runs/20260916T053538-inspect-data-6ab13662/run.json | 未逐值核查全部轨迹、近重复或物理准确性 |
 | RUN-003 | experimental | AR 与 Direct 各一次真实网格参数更新/保存成功 | code：../../runs/20260916T053617-smoke-ar-b42544af/；../../runs/20260916T053623-smoke-direct-ad4a3444/ | 小模型、单更新、无正式验证；不说明精度提升 |
-| ADAPT-001 | partial-result | Agent 可连接项目并执行/记录实验 | code：初版工作台 17 测试、技能验证、源码差异见 ../../ADAPTATION_REPORT.md 与 ../../runs/adaptation-validation/ | 初版只保留单次实验；自动多轮能力已由 ADAPT-002 恢复 |
+| ADAPT-001 | partial-result | Agent 可连接项目并执行/记录实验 | code：初版工作台 17 测试、技能验证、源码差异见 ../../docs/ADAPTATION_REPORT.md 与 ../../runs/adaptation-validation/ | 初版只保留单次实验；自动多轮能力已由 ADAPT-002 恢复 |
 | ADAPT-002 | partial-result | 心脏版自动队列可跨回合传递状态并管理实验 | code：43 项工作台回归通过，其中 26 项队列测试；实际 CLI 参数、研究包与预览通过，见 ../../runs/autonomy-validation/validation.json | 测试使用程序替身；CLI 未登录，真实模型回合未验证；不构成 AR/PCA 研究目标完成或精度提升 |
 
 ## AR/PCA 原有目标衔接（2026-09-16 13:44）

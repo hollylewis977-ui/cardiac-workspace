@@ -1,104 +1,226 @@
-# 心脏电生理与 AI 个体化建模 Agent
+# Cardiac Surrogate Research Workspace
 
-此工作台位于 **PDE 心脏代码2** 项目内部，优先服务于写代码、跑实验和分析结果。
-当前源码入口是 `code/TC_GCN_server/` 的 AR/PCA，以及 `code/FBNO_time_forecast/` 的直接预测对照。
-2026-10-09 目录已由 graph-geometry-research-workspace-main 改名为 cardiac-workspace；服务器副本需同步改名。
-保留原版的自动多轮研究方式：连续调用 Codex，分析 → 改代码 → 做实验 → 评估 → 继续下一轮。
-单次实验执行器作为研究队列内的工具；跨轮状态、证据、预算和恢复由队列管理。
+让心脏代理模型研究跨会话继续，并保留可审查的证据链。
 
-## 自动多轮推进
+[![Workspace checks](https://github.com/hollylewis977-ui/cardiac-workspace/actions/workflows/ci.yml/badge.svg)](https://github.com/hollylewis977-ui/cardiac-workspace/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-在本工作台目录执行，默认 ar-pca 任务已连接现有研究目标：
+这个工作台面向使用 Codex 或 Claude 进行代理模型实验、失效案例构造、文献核查和计算实验的研究者。
+它把正式题目、方法族、命题依赖、证据等级、失败记录和下一步保存在项目目录中。研究可以跨越很多会话继续，
+不必依赖一段不断增长的聊天记录。它位于 **PDE 心脏代码2** 项目内部，实际源码、数据和权重都在上一级目录。
 
-```powershell
-python tools/research_queue.py check
-python tools/research_queue.py plan ar-pca
-python tools/research_queue.py start --slug ar-pca --max-rounds 5 --max-hours 2
-python tools/research_queue.py status
-python tools/research_queue.py watch
-python tools/research_queue.py stop
+[快速开始](#快速开始) · [先看题目](#先看题目) · [核心能力](#核心能力) ·
+[执行边界](#执行边界) · [证据与安全边界](#证据与安全边界)
+
+## 适合谁
+
+这个工作台适合需要长期推进一个代理模型问题，并且希望保留完整研究轨迹的个人研究者或小型团队。
+它特别适合以下任务：
+
+- 一个主命题需要多个方法族和多轮失效案例测试；
+- 研究过程会跨会话、跨模型或跨 Agent；
+- 训练结果必须和独立复核、文献事实、人工确认严格区分；
+- 多个研究任务需要在后台公平轮转，或需要专注运行其中一个。
+
+它不是预测有效性的自动保证，也不是新的模型。工作台负责组织 Agent 的研究过程，
+研究者仍然负责确认题目、检查证据并决定是否公开结论。
+
+## 快速开始
+
+### 1. 读正式题目
+
+```text
+projects/cardiac-ep/problem.md
 ```
 
-`start` 在后台连续调用 Codex；`run` 是前台连续运行；`once --slug ar-pca` 调用一轮。
-`stop` 在当前回合保存后退出，之后再次 `run/start` 从已有状态接续。
-上例限制 5 轮、2 小时；不加覆盖参数时沿用单轮 90 分钟、一次启动 24 小时的默认预算。
-继承本机 CLI 模型，不另选模型。`plan`、`packet`、`once --dry-run` 只读预览。
+主命题是时间外推算子：只看 0–500 ms 的 V/Ca 观测，预测 502–1000 ms 的场与激活事件。定义、归一化、
+已知结果和已试路线都在这一份文件里。
 
-2026-09-16 本机检查显示 CLI 未登录；真实模型回合尚未验证。请在自己的终端完成 `codex login`，
-再用一轮验证实际连接。软件回归使用独立子进程测试替身，不冒充真实模型研究。
-任务配置、动态加任务、恢复和 token 预算见 [队列说明](problems/cardiac-research/README.md)。
-
-## 交互式工作
-
-也可在心脏项目中开启 Codex 会话；其 AGENTS.md 会引导读取本工作台：
-
-```powershell
-Set-Location '..\PDE 心脏代码2'
-codex
-```
-
-可以直接说：
-
-> 读取 Agent 的 CURRENT_STATE 和 SOURCE_MAP。先检查 TC_GCN_server 当前改动与测试，然后根据我的实验需求修改代码；保留已有修改和正式权重，记录实验协议与验证结果。
-
-也可以从工作台开始；此时会话的可写范围需要包含上一级心脏项目目录。实际文件权限以当前会话为准。
-本改造不修改全局 Codex 配置。项目 AGENTS.md 和 .agents/skills 的入口依据 [OpenAI 官方说明](https://learn.chatgpt.com/docs/agent-configuration/agents-md)、[技能说明](https://learn.chatgpt.com/docs/build-skills)。
-
-## 本地检查和实验
-
-在本工作台运行，所有相对路径以配置文件所在目录为基准，支持中文和空格：
+### 2. 检查环境
 
 ```powershell
 python tools/cardiac_workspace.py doctor
 python tools/cardiac_workspace.py list
-python tools/cardiac_workspace.py packet
-python tools/cardiac_workspace.py plan server-tests
-python tools/cardiac_workspace.py run server-tests
-python tools/cardiac_workspace.py run direct-tests
-python tools/cardiac_workspace.py run smoke-ar
-python tools/cardiac_workspace.py status
 ```
 
-`doctor` 只读检查源码入口、依赖和 NPZ 头信息，不加载完整轨迹，不据此认证数据质量。
-`plan` 只显示命令；`run` 才执行指定任务，使用当前 Python，默认 CPU、两个数值计算线程、有超时。
-`packet` 输出短状态、源码索引及本轮任务提示，供交互式 Agent 接续。
-Linux 的 `bash queue.sh` 和 `queue.ps1` 是自动研究队列的包装入口；`.ps1` 仅在本机执行策略允许时可用。
-当前 Windows 禁止执行脚本，请直接用上面的 Python 命令，无需修改系统策略。
-`cardiac_workspace.py run` 执行一个实验；自动研究的入口是 `research_queue.py run/start`。
-每次运行保存 `run.json`、`stdout.log`、`stderr.log`，新目录互不覆盖。
-重跑成功也只代表相应运行完成，不会冻结其他任务或自动认证预测性能。
-自动回合使用研究包指定的 `--config .../EXPERIMENT_CONFIG.json`，实验记录写入该回合的 `artifacts/experiments/`。
+`doctor` 只读检查源码入口、依赖和 NPZ 头信息，不加载完整轨迹。所有项目代码的实际执行必须在 254 服务器的
+Slurm 分配内进行，见[执行边界](#执行边界)。
 
-配置见 [cardiac-workspace.json](cardiac-workspace.json)。迁到服务器时用配置副本的
-`project_root`、`data_dir` 和运行目录指定实际路径，再用 `--config /path/to/config.json`。
-服务端 AR/PCA 的实际部署路径不同于本机；提交作业前检查现有 `slurm/` 脚本与冻结包。
-
-## 文件导航
-
-| 入口 | 内容 |
-|---|---|
-| [AGENTS.md](AGENTS.md) | 默认研究行为、项目边界和执行约定 |
-| [ADAPTATION_REPORT.md](ADAPTATION_REPORT.md) | 本次修改范围、功能变化与实际验证 |
-| [research-queue.json](research-queue.json) / [队列说明](problems/cardiac-research/README.md) | 自动 Codex 回合、预算、后台运行与恢复 |
-| [CURRENT_STATE.md](projects/cardiac-ep/CURRENT_STATE.md) | 跨会话恢复 |
-| [SOURCE_MAP.md](projects/cardiac-ep/SOURCE_MAP.md) | 源码位置、参数、数据与命令 |
-| [experiments.md](projects/cardiac-ep/experiments.md) | 实验优先级、预算和验收 |
-| agents/protocols/ | 数据、代码、模型验证与结果记录 |
-| .agents/skills/cardiac-experiment/ | 代码修改、复现与实验技能 |
-| .agents/skills/cardiac-paper-study/ | 从论文方法到本项目实现的技能 |
-| archive/math-framework/ | 原数学专属模块，已退出默认入口 |
-
-当前 v10 数据是参考域上的二维 CRN 合成场。几何形变没有进入动力学，
-现有任务首先验证 V/Ca 预测；真实患者个体化、几何依赖和参数反演仍需单独定义数据与实验。
-详见源码索引；不能把合成数据上的 smoke、低 loss 或单病例图当作临床/个体化验证。
-
-## 检查工作台本身
+### 3. 加入一道题
 
 ```powershell
-python -m unittest discover -s tools/tests -v
-python tools/update_manifest.py check
+python tools/research_queue.py add my-task "任务标题"
 ```
 
-源码清单不包含 `runs/`、`projects/cardiac-ep/queue/` 等生成产物。测试只依赖标准库；心脏模型的测试依赖其现有环境。
-完整改造前快照在 `../../agent-adaptation-backup-20260916-131832/original-agent.zip`；
-恢复队列前快照在 `agent-autonomy-backup-20260916-150206/before-autonomy.zip`；保留原 LICENSE，未提交 Git。
+填写：
+
+```text
+problems/cardiac-research/items/my-task/task.json
+```
+
+目标、范围与验收项由研究者维护；再把 `ready` 改为 `true`。Runner 会保存输入快照，研究 Agent 不会改写原题。
+第二道题 `personalization` 已登记但未就绪，等有影响动力学的数据后再启动。
+
+### 4. 先跑一个回合
+
+```powershell
+python tools/research_queue.py check
+python tools/research_queue.py packet neural-ode-full500
+python tools/research_queue.py once --slug neural-ode-full500 --dry-run
+```
+
+`check` 只检查环境和任务；`packet` 只读预览研究包；`--dry-run` 显示命令但不调用模型。
+
+### 5. 需要时连续推进
+
+```powershell
+python tools/research_queue.py run --slug neural-ode-full500 --max-rounds 5 --max-hours 2
+python tools/research_queue.py status
+python tools/research_queue.py stop
+```
+
+`run` 在前台连续调用 Codex；`stop` 在当前回合保存后退出，再次 `run` 从已有状态接续。自动循环至今未真实运行，
+所有记录由交互式会话维护。
+
+## 先看题目
+
+`projects/cardiac-ep/` 是一道题的完整骨架，文件互相引用：
+
+```text
+problem.md
+    ↓
+CURRENT_STATE.md
+    ↓
+ideas.md + research-tree.md + claim-map.md
+    ↓
+verification-ledger.md + progress.md
+    ↓
+references.md + SOURCE_MAP.md
+```
+
+候选结果即使看起来完整，也停在 `proof-draft`。工作台不会自动把它升级为独立复核或人工确认的结果。
+
+## 它解决什么
+
+| 常见问题 | 工作台的处理方式 |
+|---|---|
+| 新会话不了解上次做到哪里 | `CURRENT_STATE.md` 保存题目范围、最小缺口和证据指针 |
+| Agent 重复失败路线 | `ideas.md` 和 `research-tree.md` 记录方法族、失败类型与重开条件 |
+| 未验证的结果逐渐变成默认前提 | `claim-map.md` 和 `verification-ledger.md` 保存依赖与证据等级 |
+| smoke 或低 loss 被写成结论 | 计算证据最高先标为 `experimental` |
+| 一个任务占用全部时间 | 队列按上次运行时间公平轮转，也支持单任务运行 |
+| 模型声称达标后继续自动运行 | 候选完整结果触发认证，等待研究者复核 |
+
+## 工作方式
+
+```mermaid
+flowchart LR
+    A[研究者提交正式题目] --> B[Agent 推进一个有边界回合]
+    B --> C[结果和证据写回项目]
+    C --> D{当前状态}
+    D -->|有明确下一步| B
+    D -->|需要判断| E[等待研究者]
+    D -->|候选完整结果或失效案例| F[冻结并进入认证]
+```
+
+每个回合只负责一个有边界的贡献：分析一个失效、修改代码、运行授权实验或评估结果。长期运行来自连续回合和
+磁盘状态。每轮至少保存一项可复核产物，例如已验证修复、可复现基线、消融比较、定位到代码或数据的失败、
+认证过的失效案例或明确实验方案。
+
+普通回合由一个研究 Agent 沿当前缺口继续推进。只有研究者明确要求多智能体时，才增加独立审查 Agent。
+认证只冻结受影响的依赖节点；主命题的候选完整结果触发全题认证，等待人工复核。
+
+## 核心能力
+
+| 能力 | 对应组件 |
+|---|---|
+| 可恢复研究回合 | `CURRENT_STATE.md`, `progress.md` |
+| 方法族和失败路线管理 | `ideas.md`, `research-tree.md` |
+| 命题依赖追踪 | `claim-map.md` |
+| 证据分级 | `verification-ledger.md`, `agents/core/research-core.md` |
+| 认证与失效案例 | `agents/protocols/claim-audit.md`, `failure-case-audit.md` |
+| 独立复核 | `agents/protocols/independent-replication.md` |
+| 进展判定 | `agents/protocols/progress-assessment.md` |
+| 多任务轮转与单任务长跑 | `tools/research_queue.py` |
+| 回合内实验执行 | `tools/cardiac_workspace.py`, `cardiac-workspace.json` |
+| 文献与架构对照 | `references.md`, `agents/protocols/literature-check.md` |
+| 发布前完整性检查 | GitHub Actions, `tools/update_manifest.py` |
+
+`AGENTS.md` 保存所有任务共用的研究纪律。`agents/protocols/` 按阶段拆分详细规则，`library/definitions/` 放
+定义，`templates/` 放题目、方法族、研究树、命题依赖图、审查报告和短状态的模板。
+
+## 执行边界
+
+2026-09-29 起，所有项目代码执行，包括研究队列、训练、评估、绘图、数据处理、CPU/GPU 测试和 smoke，必须通过
+254 服务器 Slurm 排队取得资源后进行；本机和登录节点只做文件操作、SSH、传输、提交与查询。本页命令只列接口。
+
+`cardiac-workspace.json` 的 `project_root` 指向上一级心脏项目（默认 `..`）；上级 AGENTS.md 是薄入口，要求读取
+本工作台。迁到服务器时用配置副本的 `project_root`、`data_dir` 和运行目录指定实际路径，再用
+`--config /path/to/config.json`。根目录 `global-memory-queue.json` 与 `global-memory-workspace.json` 是服务器
+`code/NeuralODE_GlobalMemory/slurm/agent.sbatch` 引用的队列配置副本。
+
+心脏项目两套目录各自测试，各用一个 Python 进程：
+
+```powershell
+python -B -m unittest discover -s code/TC_GCN_server -p "test_*.py" -v
+python -B -m unittest discover -s code/FBNO_time_forecast -p "test_*.py" -v
+```
+
+## 证据与安全边界
+
+### 证据等级
+
+| 等级 | 含义 |
+|---|---|
+| `conjecture` | 只有假设，没有任何运行 |
+| `experimental` | 单种子、短预算或合成数据上的数值信号 |
+| `partial-result` | 只在受限范围成立：必要条件、训练段、单病例、固定权重下限 |
+| `proof-draft` | 完整协议下成立，但只有本会话自报 |
+| `agent-verified` | 独立作业从冻结权重和源码哈希重算一致，十项审查通过 |
+| `human-verified` | 研究者逐项看过证据并明确接受 |
+| `formalized` | 在开发中从未接触的数据上成立 |
+
+smoke 只证明可执行，低 loss 不是结论，单病例图不是验证。Agent 给出的完整结果最高先标为 `proof-draft`。
+只有研究者能够把它升级为 `human-verified`。
+
+### 公开仓库不包含研究数据
+
+这个仓库只发布框架、协议、模板、工具、测试和当前题目的状态文件。`runs/` 和 `projects/cardiac-ep/queue/`
+不提交；权重、数据集、PDF 和登录配置不会进入仓库。
+
+提交前运行：
+
+```powershell
+python tools/update_manifest.py write
+python -m unittest discover -s tools/tests -v
+```
+
+清单不包含 `runs/`、`projects/cardiac-ep/queue/` 和 `projects/cardiac-ep/*.md`。GitHub Actions 会在每次 push 和
+pull request 上重复清单检查与测试。
+
+## 关于独立复核
+
+普通回合只需要一个研究 Agent。独立复核是可选的升级通道，用于同一缺口两轮未闭合，或 `proof-draft` 申请升
+`agent-verified` 的情形。Agent 只准备交接稿（命题、协议、冻结权重与源码哈希、命令、容差、验收），提交走研究者已
+授权的 Slurm 预算；复核作业与训练作业分离，复核脚本不改模型或协议。流程见
+`agents/protocols/independent-replication.md`。
+
+## 研究范围
+
+当前主命题是参考域上二维 CRN 合成数据的时间外推算子，方法族包括 AR 一步算子、固定 PCA 低维推进、图 Neural ODE、
+直接时间查询和区域记忆态 H。几何个体化、参数反演和真实患者验证属于第二道题，当前数据不支持。
+
+目录、队列和证据规则不依赖这些具体方向。修改 `problem.md`、`AGENTS.md` 和模板后，也可以用于其他需要长期
+实验推进的代理模型问题。
+
+## 文档
+
+- [研究规则](AGENTS.md)：证据、审计与权限边界
+- [队列说明](problems/cardiac-research/README.md)：任务配置、运行与恢复
+- [设计文档](docs/superpowers/specs/2026-10-13-cardiac-math-framework-design.md)：2026-10-13 数学框架重建
+- [改造记录](docs/ADAPTATION_REPORT.md)：2026-09-16 从图几何工作台改造为心脏工作台
+- `archive/math-framework/`：原版数学框架文件，供对照；完整原版快照在 `../../agent-adaptation-backup-20260916-131832/original-agent.zip`
+
+## License
+
+MIT License。可以复制、修改和再发布，但需要保留版权及许可声明。

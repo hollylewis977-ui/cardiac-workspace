@@ -996,8 +996,7 @@ git commit -m "Rebuild project skeleton: ideas, research tree, claim map, refere
 
 **Files:**
 - Modify: `tools/research_runtime.py:122-125`、`:186-233`
-- Modify: `tools/tests/test_research_queue.py:93-94`
-- Create: `tools/tests/test_round_result_claims.py`
+- Modify: `tools/tests/test_research_queue.py:93-94`，并在文件末尾追加 ClaimFieldTests 测试类（研究者要求不新增测试文件；下文 Step 1 的类体追加到该文件，不另建 test_round_result_claims.py）
 - Modify: `templates/cardiac-round-result.schema.json`
 - Modify: `cardiac-workspace.json`
 - Modify: `../AGENTS.md:11`
