@@ -108,6 +108,98 @@
         ],
         "additionalProperties": false
       }
+    },
+    "progress": {
+      "type": "object",
+      "properties": {
+        "claimed_kind": {
+          "type": "string",
+          "enum": [
+            "frontier-advance",
+            "route-elimination",
+            "enabling-result",
+            "experimental-signal",
+            "reformulation",
+            "repeat",
+            "inconclusive",
+            "regression",
+            "candidate-solution"
+          ]
+        },
+        "main_problem_effect": {
+          "type": "string"
+        },
+        "scope_limitations": {
+          "type": "string"
+        },
+        "evidence_level": {
+          "type": "string",
+          "enum": [
+            "conjecture",
+            "experimental",
+            "partial-result",
+            "proof-draft"
+          ]
+        }
+      },
+      "required": [
+        "claimed_kind",
+        "main_problem_effect",
+        "scope_limitations",
+        "evidence_level"
+      ],
+      "additionalProperties": false
+    },
+    "new_claims": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "statement": {
+            "type": "string"
+          },
+          "level": {
+            "type": "string",
+            "enum": [
+              "conjecture",
+              "experimental",
+              "partial-result",
+              "proof-draft"
+            ]
+          },
+          "dimensions": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "code",
+                "numerics",
+                "data",
+                "prediction",
+                "personalization",
+                "uncertainty"
+              ]
+            }
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "statement",
+          "level",
+          "dimensions",
+          "evidence"
+        ],
+        "additionalProperties": false
+      }
     }
   },
   "required": [

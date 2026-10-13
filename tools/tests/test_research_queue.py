@@ -92,7 +92,8 @@ class QueueTests(unittest.TestCase):
         runtime.write_json(self.root/'cardiac-workspace.json', {'schema_version':1,'project_root':'../'+self.project.name,
                            'data_dir':'data','runs_dir':'runs','tasks':{},'source_roots':['code']})
         for name in ['AGENTS.md','agents/core/research-core.md','agents/core/queue-core.md','agents/protocols/round-result.md',
-                     'projects/cardiac-ep/CURRENT_STATE.md','projects/cardiac-ep/SOURCE_MAP.md'] + [f'agents/protocols/{n}.md' for n in ['explore','computation','data-validation','model-validation']]:
+                     'projects/cardiac-ep/problem.md','projects/cardiac-ep/CURRENT_STATE.md','projects/cardiac-ep/claim-map.md',
+                     'projects/cardiac-ep/SOURCE_MAP.md'] + [f'agents/protocols/{n}.md' for n in ['explore','computation','data-validation','model-validation']]:
             path=self.root/name
             path.parent.mkdir(parents=True,exist_ok=True)
             path.write_text('# Fixture context\nNo scientific claims.\n',encoding='utf-8')

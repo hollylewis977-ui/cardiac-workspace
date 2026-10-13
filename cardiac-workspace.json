@@ -15,7 +15,11 @@
   "source_roots": [
     "code/TC_GCN_server",
     "code/FBNO_time_forecast",
-    "code/DATASET"
+    "code/DATASET",
+    "code/NeuralODE",
+    "code/NeuralODE_GlobalMemory",
+    "code/NeuralODE_Pure",
+    "code/NeuralODE_Experiments"
   ],
   "expected_data": {
     "batches": 25,

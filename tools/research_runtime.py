@@ -14,6 +14,10 @@ import tempfile
 PHASES = {"analyze", "implement", "experiment", "assess"}
 STATES = {"queued", "pushing", "waiting", "blocked", "completed", "runtime-error", "paused"}
 PROTECTED = ("state.json", "CURRENT_STATE.md", "progress.md", "verification-ledger.md")
+KINDS = {"frontier-advance", "route-elimination", "enabling-result", "experimental-signal", "reformulation",
+         "repeat", "inconclusive", "regression", "candidate-solution"}
+LEVELS = {"conjecture", "experimental", "partial-result", "proof-draft"}
+DIMENSIONS = {"code", "numerics", "data", "prediction", "personalization", "uncertainty"}
 
 
 def now():
@@ -121,7 +125,8 @@ def packet(workspace, project, item_file, directory, state, round_id, timeout, m
              "Runner state:\n" + json.dumps(state, ensure_ascii=False, indent=2)]
     files = [workspace / "AGENTS.md", workspace / "agents/core/research-core.md",
              workspace / "agents/core/queue-core.md", workspace / "agents/protocols/round-result.md",
-             workspace / "projects/cardiac-ep/CURRENT_STATE.md", workspace / "projects/cardiac-ep/SOURCE_MAP.md",
+             workspace / "projects/cardiac-ep/problem.md", workspace / "projects/cardiac-ep/CURRENT_STATE.md",
+             workspace / "projects/cardiac-ep/claim-map.md", workspace / "projects/cardiac-ep/SOURCE_MAP.md",
              directory / "CURRENT_STATE.md"]
     protocol = {"analyze": "explore", "implement": "computation", "experiment": "data-validation", "assess": "model-validation"}
     files.append(workspace / f"agents/protocols/{protocol[state['phase']]}.md")
@@ -183,6 +188,27 @@ def evidence_file(reference, workspace, project):
     return path
 
 
+def validate_claims(value, verified):
+    progress = value.get("progress")
+    if progress is not None:
+        if not isinstance(progress, dict) or progress.get("claimed_kind") not in KINDS or progress.get("evidence_level") not in LEVELS:
+            raise ValueError("progress needs a known claimed_kind and evidence_level at most proof-draft")
+        for key in ("main_problem_effect", "scope_limitations"):
+            if not isinstance(progress.get(key), str) or not progress[key].strip():
+                raise ValueError(f"progress.{key} must be nonempty text")
+    for claim in value.get("new_claims") or []:
+        if not isinstance(claim, dict) or claim.get("level") not in LEVELS:
+            raise ValueError("new_claims entries need a level at most proof-draft")
+        for key in ("id", "statement"):
+            if not isinstance(claim.get(key), str) or not claim[key].strip():
+                raise ValueError(f"new_claims.{key} must be nonempty text")
+        dims = claim.get("dimensions")
+        if not isinstance(dims, list) or not dims or not set(dims) <= DIMENSIONS:
+            raise ValueError("new_claims.dimensions must list known verification dimensions")
+        if not isinstance(claim.get("evidence"), list) or any(ref not in verified for ref in claim["evidence"]):
+            raise ValueError("new_claims.evidence must be in the verified list")
+
+
 def validate_result(value, task, round_dir, workspace, project):
     metadata = read_json(round_dir / "PACKET.json")
     if value.get("schema_version") != 1 or value.get("round_id") != round_dir.name or value.get("packet_sha256") != metadata["packet_sha256"]:
@@ -225,6 +251,7 @@ def validate_result(value, task, round_dir, workspace, project):
             raise ValueError("Acceptance evidence must be in the verified list")
         if row["outcome"] == "passed" and not row["evidence"]:
             raise ValueError("Passed criterion requires direct evidence")
+    validate_claims(value, verified)
     if value["status"] == "completed":
         if any(row["outcome"] != "passed" for row in acceptance) or not checks or any(row["exit_code"] != 0 for row in checks):
             raise ValueError("Completion requires all criteria passed and successful recorded checks")
