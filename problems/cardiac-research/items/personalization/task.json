@@ -1,0 +1,15 @@
+{
+  "slug": "personalization",
+  "title": "个体化可识别性（未启动）",
+  "objective": "在有影响动力学的参数变化数据后，定义可识别参数、观测算子与校准/验证分离协议，再评估个体化代理模型。",
+  "scope": "当前没有数据支撑，不运行任何实验；题目见同目录 problem.md。",
+  "ready": false,
+  "enabled": false,
+  "priority": 0,
+  "max_rounds": 0,
+  "acceptance": [
+    {"id": "C1", "description": "可识别参数集合与观测算子已写入 problem.md 并经研究者确认。"},
+    {"id": "C2", "description": "存在参数变化影响动力学的数据集，含生成器版本、参数范围与样本数。"},
+    {"id": "C3", "description": "校准与验证数据严格分离的协议已写明并被实验脚本执行。"}
+  ]
+}
