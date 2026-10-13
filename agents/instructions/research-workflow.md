@@ -1,7 +1,5 @@
-# 心脏研究流程索引
+# 研究流程索引
 
-从 projects/cardiac-ep/CURRENT_STATE.md 和 SOURCE_MAP.md 恢复，读取 agents/core/research-core.md。
-写代码用 protocols/computation.md，数据协议用 protocols/data-validation.md，
-预测与个体化评价用 protocols/model-validation.md，方案设计用 protocols/explore.md。
-本目录 paper-writing.md 处理研究文字。路径中的 protocols 均相对 agents/。
-实际源码在配置指定的心脏项目，项目已有改动和配置优先保留。
+数学框架层：problem.md → CURRENT_STATE.md → ideas.md / research-tree.md → claim-map.md → verification-ledger.md → progress.md。规则在 agents/core/research-core.md；探索 protocols/explore.md；认证 protocols/claim-audit.md、failure-case-audit.md；独立复核 protocols/independent-replication.md；进展判定 protocols/progress-assessment.md；文献 protocols/literature-check.md。
+计算实验层：代码 protocols/computation.md，数据协议 protocols/data-validation.md，预测与个体化评价 protocols/model-validation.md，队列回合 core/queue-core.md 与 protocols/round-result.md。
+模板在 templates/，定义在 library/definitions/。实际源码在配置指定的心脏项目，已有改动优先保留。

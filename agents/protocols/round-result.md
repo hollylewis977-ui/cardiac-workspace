@@ -29,3 +29,9 @@ evidence、checks、acceptance。
 独立实验工具 tools/cardiac_workspace.py 的 runs/<id>/run.json 继续适用：
 completed 仅表示脚本退出 0，evidence 中预测/个体化等维度不会因此自动提高。
 它可以被自动研究回合调用，结果路径作为当前回合的直接证据。
+
+## 可选字段：progress 与 new_claims
+
+progress = {claimed_kind, main_problem_effect, scope_limitations, evidence_level}。claimed_kind 取 agents/protocols/progress-assessment.md 的九类；evidence_level ≤ proof-draft。
+new_claims = [{id, statement, level, dimensions, evidence}]。id 为新的 claim-map 节点 ID；level ≤ proof-draft；dimensions ⊆ {code, numerics, data, prediction, personalization, uncertainty}；evidence 必须出现在本轮 evidence 列表。
+runner 只校验格式，不判真伪，不写 claim-map；登记由交互式会话按 claim-audit 处理。

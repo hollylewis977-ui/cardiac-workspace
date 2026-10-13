@@ -1,6 +1,6 @@
 # 自动多轮研究队列
 
-主入口 tools/research_queue.py，配置 research-queue.json。queue.sh / queue.ps1 指向此入口；
+主入口 tools/research_queue.py，配置 research-queue.json；服务器 Slurm 脚本另用根目录 global-memory-queue.json。
 旧 tools/conjecture_queue.py 名称保留为兼容入口。tools/cardiac_workspace.py 是队列内可调用的实验工具。
 
 任务定义在 problems/cardiac-research/items/<slug>/task.json：目标、范围、验收、ready/enabled 与可选累计回合上限。
