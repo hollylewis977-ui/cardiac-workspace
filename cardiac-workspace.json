@@ -10,7 +10,8 @@
     "code/TC_GCN_server/run_pca.py",
     "code/TC_GCN_server/ar_experiments.py",
     "code/FBNO_time_forecast/main.py",
-    "slurm/README.md"
+    "slurm/README.md",
+    "code/visualization/generate_visualizations.py"
   ],
   "source_roots": [
     "code/TC_GCN_server",
@@ -19,7 +20,8 @@
     "code/NeuralODE",
     "code/NeuralODE_GlobalMemory",
     "code/NeuralODE_Pure",
-    "code/NeuralODE_Experiments"
+    "code/NeuralODE_Experiments",
+    "code/visualization"
   ],
   "expected_data": {
     "batches": 25,
@@ -197,6 +199,29 @@
       ],
       "requires_data": true,
       "timeout_seconds": 300
+    },
+    "plot-sci": {
+      "description": "用 code/visualization 的 SCI 风格脚本画 AR 参考预测的 voltage/calcium/traces/error 图（标题 NRMSE 按固定分母）；仅在 254 Slurm 分配内运行",
+      "cwd": "code/visualization",
+      "argv": [
+        "{python}",
+        "-B",
+        "generate_visualizations.py",
+        "--npz",
+        "{project_root}/results/ar/reference/prediction.npz",
+        "--model-name",
+        "AR baseline",
+        "--output-dir",
+        "{run_dir}/plots",
+        "--skip-ecg"
+      ],
+      "dependencies": [
+        "numpy",
+        "scipy",
+        "matplotlib"
+      ],
+      "requires_data": false,
+      "timeout_seconds": 600
     }
   }
 }

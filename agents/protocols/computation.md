@@ -7,5 +7,5 @@
 5. 每次运行保存命令、解释器/库版本、种子、训练更新数、数据切分、时间范围、clamp、checkpoint/PCA 来源、输出及退出码。
 6. 读取约 134 GB 的 v10 数据采用现有 NpzBatch 内存映射；它只支持 ZIP_STORED NPZ。不要 np.load 后整体复制轨迹或擅自重打包。
 7. 修改 AR/PCA 跑 TC_GCN_server 测试；修改 Direct 跑 FBNO_time_forecast 测试。两套目录均有 main/data/model 同名模块，分进程执行，避免导入串线。
-8. 图表输出 PNG。未来真值可用于评估/授权的训练监督，不能进入部署预测输入。
+8. 正式图用 code/visualization/generate_visualizations.py --npz 画（SCI 风格；标题 NRMSE 按固定分母 150 mV / 0.0012 mM，与台账一致）；plot_results.py 与 evaluate_shape.py 的内置图只作快速检查。图表输出 PNG。未来真值可用于评估/授权的训练监督，不能进入部署预测输入。
 源码导航和真实命令见 projects/cardiac-ep/SOURCE_MAP.md。

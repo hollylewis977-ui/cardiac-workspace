@@ -132,3 +132,12 @@
 - 数量：19335跨区域细边、675有向界面、90568参数，H仍132×24。最后仍压缩各界面，不保证完整逐界面历史。硬约束仅相同固定drive下H方程收缩；新drive经du/dt依赖H，不能由固定u/h或原证明宣称闭环稳定。
 - evidence：项目results/neural_ode_boundary_memory/session_20261009_2047/，real_check_7207/real_check.json、tests_7208.log、frozen_7207/、frozen_7208/及source_*.sha256；原Pure哈希记录original_pure_sha256.json。
 - prediction/numerics/personalization/uncertainty：新精度、训练后GPU时延、数值收敛、患者能力均未评估。真实数据0优化更新，梯度检查目标是2ms后的记忆平方范数；初始化H读出为零，场损失第一轮写入梯度为零。未追加第十组500×200训练或改动现有作业。
+
+### NODE-PURE-INTERIM-001 — 2026-10-14
+- 等级：experimental；来源internal；进展experimental-signal。
+- 用户授权：当天完整预测与误差对比。独立冻结Pure无H从零模型best epoch246（49400更新），原训练冻结时完成277轮；不追加训练或修改原九组。SHA256 5b2e93a0d6536f8d2e3f04226a73c9af3d5494cbb28c734984650fde521bc687。
+- prediction supported（有限范围）：90例batch022–024，输入0–500ms，完整502–1000ms/250帧/43573节点。病例平均V5.612517mV/Ca37.386250nM，激活事件F1 .889198、下降F1 .939110，首次激活漏检5.343321%、误激活1.477184%、匹配MAE5.234023ms；晚期V6.791614mV/Ca51.143119nM。相对旧ODE第4轮平均误差降低67.48%/68.36%，V90/90、Ca89/90改善；相对AR两场90/90改善。
+- code/data limited-supported：7275 GPU评估/测速完成exit0（21分25秒），7276 CPU汇总exit0（2秒）；冻结source与原manifest一致，checkpoint复制前后哈希一致。比较验证90唯一病例、250帧时间、阈值/容差、真值事件计数、persistence误差一致；只取AR部署free_clamp1，ODE不注入未来真值。不是全量原始数据哈希审计。
+- runtime supported（当前权重/该设备）：RTX4090、float32、batch1、3例各2预热5重复；完整rollout中位3.518086秒，P90 3.520400秒；仅网络编码/积分及输出，不含数据读取、传输、指标、绘图。完整90例评估子进程约1122.85秒。
+- evidence：results/neural_ode_full500/evaluation_20261014/{evaluation_plan.json,snapshot.json,checkpoint/best.pt,test90/metrics.json,inference/inference_benchmark.json,comparison/summary.json,comparison/report.md,comparison/per_case.csv,slurm_job_7275_final.txt,slurm_job_7276_final.txt,artifact_sha256.txt}；PNG已查看；下载5个关键哈希与远端一致。
+- 限制：单种子中途权重，不是500轮最终结果；AR监督/选模≤500ms，ODE监督可至1000ms且用4例未来窗选模，初始化/累计预算/clamp不同。旧第3/4轮为AR初始化后短微调，复用历史90例原始指标，未于本次重跑。测试集已开发暴露；未新增独立复现、dt收敛、患者个体化或不确定性证据；不宣称P0达标或架构因果。
