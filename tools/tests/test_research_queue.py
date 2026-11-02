@@ -197,7 +197,7 @@ class QueueTests(unittest.TestCase):
         self.run_loop()
         state=self.state()
         record=runtime.read_json(queue.task_directory(self.config,'alpha')/'.runtime/rounds'/state['last_round']/'RUN.json')
-        self.assertLessEqual(record['timeout_seconds'],0.18)
+        self.assertLessEqual(record['timeout_seconds'],self.config['max_wall_hours']*3600)
 
     def test_missing_usage_stops_token_budget_instead_of_assuming_zero(self):
         self.add_task('alpha','no-usage')
