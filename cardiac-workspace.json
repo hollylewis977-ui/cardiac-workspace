@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "project_root": "..",
-  "data_dir": "dataset/750sample/batch_v10/data",
+  "data_dir": "code/NeuralODE/data/750sample/batch_v10/data",
   "runs_dir": "runs",
   "threads": 2,
   "entrypoints": [
@@ -18,9 +18,7 @@
     "code/FBNO_time_forecast",
     "code/DATASET",
     "code/NeuralODE",
-    "code/NeuralODE_GlobalMemory",
-    "code/NeuralODE_Pure",
-    "code/NeuralODE_Experiments",
+    "code/NeuralODE_Latent",
     "code/visualization"
   ],
   "expected_data": {

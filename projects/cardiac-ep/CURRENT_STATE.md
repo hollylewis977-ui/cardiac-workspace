@@ -1,7 +1,7 @@
 # 当前状态
 
 ## 控制
-- updated-at: 2026-10-14
+- updated-at: 2026-11-02
 - queue-status: pushing
 - search-contract: either
 - evidence-ceiling: proof-draft
@@ -9,15 +9,22 @@
 ## 题目与范围
 - 正式陈述：见 problem.md P0，仅输入 0–500 ms 观测，预测 502–1000 ms 的 V/Ca 与激活事件。
 - 范围排除：几何个体化与参数反演（第二道题 personalization）；三维 crn 数据；真实患者验证。
-- 执行约束：所有项目代码在 254 服务器 Slurm 分配内运行；本机只做文件、SSH、传输、提交与查询。
+- 执行约束：当前10/19训练明确使用254服务器Slurm；10/17本地授权仅解释当时推理加速及低维NODE历史实验。10/23研究者仅允许本次本地新增Pure测试例b022_s02推理/绘图，默认Slurm规则不变；其他既有远程作业不改。
 
 ## 当前状态
 - 最强可用结果：AR-BASE-002（proof-draft，旧 AR 基线复现）；NODE-GRAPH-003（proof-draft，ODE 第 3 轮 90 例双场改善）；NODE-GLOBAL-SCREEN-001（experimental，hard-H 筛选）；NODE-BOUNDARY-001（partial-result，边界记忆分支实现检查通过，真实数据 0 更新）。
-- 当前结论（2026-10-14 14:27:50 +08:00 实时查询）：7186_0（JobId7188）pure_baseline仍RUNNING，运行5天3小时37分，Restarts=0；下载日志完成276/500轮（epoch0–275）、55200/100000更新（55.2%），较10/13 10:12增加55轮。其余8组JobArrayTaskLimit，7187等汇总。固定4例val最佳综合选模日志epoch246，score0.169047：V4.308mV/Ca24.664nM、激活漏检4.403%、误激活0.294%、匹配时差MAE3.268ms；最近验证epoch274：V5.340mV/Ca29.978nM、漏检25.361%、误激活0.200%、时差4.303ms。最佳记录较昨日改善，但激活覆盖仍波动，不能称收敛。近期训练部分通常约23–29分钟/轮，epoch260曾约106分钟（原因未定位）；seconds不含随后验证/保存。第一组剩224轮，按两次查询间约28小时16分推进55轮粗估仍约4.8天（仅该组训练，非完成保证）；尚无500轮完成/60例val/训练后测速。最新证据在results/neural_ode_full500/session_20261009_recovery/status_20261014_1426/。本次仅查询/下载日志和更新记录，无项目代码执行或远程作业变更；原RK4/h64/两图层500×200单卡设置、旧7176/7177及新边界记忆未启动正式训练的状态均未改，勿解除旧依赖。7185补测为旧短训权重结果，非当前训练后速度。无后台Codex循环。
-- 今日可用结果：NODE-PURE-INTERIM-001（experimental，中途权重90例完整测试）。10/14 Slurm7275/7276均完成exit0：冻结Pure best epoch246（49400更新；冻结时原训练完成277轮），90例全窗病例平均V5.613mV/Ca37.386nM、激活F1 .8892、下降F1 .9391、首次激活漏检5.343%、误激活1.477%、匹配MAE5.234ms；相对旧ODE第4轮均值误差降低67.48%/68.36%，V90/90、Ca89/90例改善。全部预测有限。当前权重RTX4090实测完整rollout中位3.518秒/例，90例含指标/首两例出图约1123秒；不等于500轮最终模型。证据results/neural_ode_full500/evaluation_20261014/，comparison/report.md及PNG/CSV已下载。旧ODE第3/4轮为AR初始化后短微调，本轮Pure从零，训练预算/监督/选模/clamp不同，比较不证明架构因果；测试集已暴露，未新增独立复现。原九组训练未改。
+- 实时训练查询（11/2 11:11 +08:00）：九组已有2组完成训练/测速/60val；pure_baseline于10/18完成500轮/100000更新，best epoch418；pure_multi于10/29完成相同预算，best epoch482（epoch均从0起）。第三组pure_multi_hard为7186_2/JobId7614，RUNNING、Restarts=0，已完成165/500轮、33000/100000更新（33%），日志11:02更新；余6组JobArrayTaskLimit，7187等待汇总。旧7176/7177未改。本次仅查询下载，未改作业；完成依据原始产物。
+- 既有中途结果：NODE-PURE-INTERIM-001（experimental，中途权重90例完整测试）。10/14 Slurm7275/7276均完成exit0：冻结Pure best epoch246（49400更新；冻结时原训练完成277轮），90例全窗病例平均V5.613mV/Ca37.386nM、激活F1 .8892、下降F1 .9391、首次激活漏检5.343%、误激活1.477%、匹配MAE5.234ms；相对旧ODE第4轮均值误差降低67.48%/68.36%，V90/90、Ca89/90例改善。全部预测有限。当前权重RTX4090实测完整rollout中位3.518秒/例，90例含指标/首两例出图约1123秒；不等于500轮最终模型。证据results/neural_ode_full500/evaluation_20261014/，comparison/report.md及PNG/CSV已下载。旧ODE第3/4轮为AR初始化后短微调，本轮Pure从零，训练预算/监督/选模/clamp不同，比较不证明架构因果；测试集已暴露，未新增独立复现。原九组训练未改。
 - 待研究者决定：P0 的验收阈值未填；neural-ode-one-day 轻量候选是否实施；AR-BASE-001 何时进入 claim-audit。
+- 正式图现状：code/NeuralODE/results/ode_pure/eval/plots/（254为evaluation_20261014/plots_sci_20261014/）含b022_s00、b022_s01与10/19新增失效例b023_s13各4张PNG，三行真值/预测/误差×三列600/800/1000ms、viridis/magma、单帧NRMSE，共15PNG，snapshot_errors.csv共9行。b023_s13为epoch246权重90例中全窗V RMSE最大者（13.785mV/142.327nM、激活F1 .570、首次激活MAE31.87ms），Slurm7368 exit0/14.55秒（rollout导出7.7秒、绘图5.1秒），逐帧误差与test90指标一致，显示范围单独计算，不与b022两例比色；预测800ms后在右下生成真值没有的激活波。纯推理时延沿用10/14测速（同权重RTX4090中位3.518秒/例）。plot_snapshot_sci.py新增--cases。10/14–10/15的重绘、覆盖与交付整理五条记录已原文移入progress.md 2026-10-19节；运行区archive/neural_ode_full500/evaluation_20261014/plots_sci_20261019_b023s13/。
+- 10/20 v10活动分层：23/90例自800ms起至2000ms始终无V>−20mV节点，34/90例800ms后无新上冲（37.8%），39/90例1000ms后无新上冲。Pure246在后者39例V3.226mV/Ca13.508nM，其余51例7.438/55.646；仅既有90例结果分层，非新预测。用户选择保留持续与终止、分层评估；D现0.08，0.06/0.04仅建议未仿真。DATA-V10-ACTIVITY-001，archive/dataset_checks/activity_audit_20261020/；7486达30分钟时限，750例新扫描未完成；25文件名/大小/首尾指纹已对上。10/19静息原值及b023_s27时间线见progress与NODE-PURE-INTERIM-001。
 
 ### 实验总表（设定 → 结果在哪 → 结果 → 问题）
+
+10/24图：plots/complete_ap_three_cases/已换低误差点（V2.72/3.21/2.48%、Ca1.50/1.69/1.03%；分母150mV/1200nM，评502–1000ms）。16例预测中按误差选点，非总体性能；95%复极≤990ms、末值距基线≤3mV。等级experimental；冻结archive/complete_ap_search_20261024/session_007/；详见progress。
+
+10/23新增正式图：Pure epoch246、测试集按文件顺序取下一未绘病例b022_s02；本次明确授权本机运行。交付NeuralODE/results/ode_pure/eval/plots/b022_s02/（4PNG+CSV+量化JSON），250帧误差与原test90一致；全窗固定量程NRMSE(V/Ca)2.864710%/1.229194%（分母150mV/1200nM）。冻结源码、预测、核查与日志archive/visualizetions_20261023/session_001/；沿用NODE-PURE-INTERIM-001，不提升证据等级。
+同例原始数据追查：直接读batch022/sample02的0–2000ms，导出真值251帧与原NPZ经既定归一化往返逐值一致；最后上冲778ms，最后V>−20mV帧812ms，1000ms V[−80,−77.4375]mV，后段无新上冲。该例为活动终止，图中主要是复极/Ca回落；真值图在同目录raw_truth/，证据archive/dataset_checks/truth_b022s02_20261023/session_001/。仅本次同例本地追查，未扩大计算授权。
 
 | 实验 | 设定 | 结果在哪 | 结果 | 问题 / 限制 |
 |---|---|---|---|---|
@@ -26,15 +33,22 @@
 | Neural ODE 第 3/4 轮 | 无 PCA，V/Ca/h 联合 RK4；AR 权重初始化后各 40 更新微调；训练标签可至 1000 ms，测试只输入 ≤500 ms | results/neural_ode/session_20260916/{report.md,budget.json}，round_4_graph_memory_bce/ | 第 3 轮 90 例全窗 25.77 mV/170.8 nM 对 AR 53.65/293.2，90/90 改善；第 4 轮双场与下降事件显著改善，激活 F1 .567 低于 AR .571 | 激活 F1、早期 Ca 未达标，联合验收未通过；四轮名额用完；与 AR 的监督/选模协议不同，不能单独证明架构因果 |
 | 空间记忆 H 六组 | code/NeuralODE_GlobalMemory；预训练/从零 × 节点 h/区域 H/硬约束 H，各 80 更新、8 epoch 课程、12 例验证 | results/neural_ode_global_memory/session_20261002/screen/、screening_review.json；Slurm 7162 | baseline/multi/multi_hard V 22.97/22.96/17.57 mV，Ca 148.1/148.4/134.7 nM，Dice .495/.500/.567；三组从零约 35.8 mV/336 nM、Dice .171 | hard 激活时间 MAE 25.2→35.5 ms、误激活 .65%→4.41%，不是全面改善；80 更新不能否定从零；预算 6395 s/6 组已用完 |
 | 纯导数 ODE | code/NeuralODE_Pure，直接输出 du/dt、dh/dt，无 AR 增量参数化；无H基线84,546、multi89,280参数 | results/neural_ode_pure/session_20261008/；中途测试results/neural_ode_full500/evaluation_20261014/ | 7275/7276完成：epoch246权重90例V5.613mV/Ca37.386nM，激活F1 .8892，漏检5.343%；完整rollout中位3.518秒/例 | 单种子中途权重，非500轮完成；旧AR/ODE训练与选模协议不同；尚无独立数值复现 |
-| 九组 500×200 正式训练 | 旧 6 组 + Pure 3 组，各 100000 更新，单卡串行；每组 best 测速（3 例、2 预热 5 重复）及 60 例 val | results/neural_ode_full500/session_20261009_recovery/；Slurm 7184–7187 | 10/14 14:27：Pure基线276/500轮、55200更新，其余8组排队；最佳4例val epoch246为V4.308mV/Ca24.664nM、漏检4.403%，最近epoch274漏检25.361%；详见上方实时段 | 还未完成500轮/60例val/训练后测速；7176/7177已被替代勿解除依赖；旧预览不是训练后速度 |
+| 九组 500×200 正式训练 | 各100000更新、单卡串行；best测速3例/暖2/重复5及60val | results/neural_ode_full500/session_20261009_recovery/；本次证据archive/neural_ode_full500/status_20261102_1109/ | 11/2：Pure基线/区域H均完成；60val病例均值V/Ca RMSE分别5.132mV/38.125nM、4.380mV/30.034nM，激活F1 .883185/.897244；4090完整模型推理中位3.606/5.155s，排除I/O；hard-H完成165/500轮 | experimental，单种子、验证集非90test，不能替代旧epoch246测试或证明H全面改善；首次漏检率区域H略高。余6组等待，7187未汇总，旧7176/7177依赖勿动 |
 
 ## 活动前沿
+- 10/26 Pure246全部90test逐帧误差图已由既有7275报告汇总（无新推理）：502–1000ms，每例43573节点空间RMSE后病例等权均值；600/800/1000ms的V/Ca NRMSE均值为2.436/1.210%、3.999/3.411%、4.816/4.837%，固定分母150mV/1200nM，阴影为病例25%–75%分位区间。交付NeuralODE/results/ode_pure/eval/test90/time_errors/，CSV保留全部90×250帧；254 CPU Slurm7610通过，冻结archive/test90_time_errors_20261026/session_002/。沿用NODE-PURE-INTERIM-001的experimental范围（中途权重、二维合成、测试历史已暴露）。
+- 10/20 18:42 Pure246/5090 Slurm7487已于13:26因2h时限终止；RK4完整90test均值3.384757s、中位3.349202s、模型合计304.628s；PECE只64/90，部分均值1.643460s、中位1.634517s，不能当90例最终值。观测SHA对应子集匹配。7488单val快测完成，不能替代test。证据archive/ode_inference_speed_20261020_rtx5090/session_001/status_20261020_1845/；未续跑/改作业。
+- 10/22核实7440已完成250轮/50000，best21600/108轮未变。7548实测90test单帧平均NRMSE(V/Ca,%):600ms9.677/7.769、800ms13.353/12.767、1000ms14.401/16.760，分母150mV/1200nM。非3val或窗口均值；NODE-LATENT-TEST90-SNAP-001。证据archive/latent_test90_snapshots_20261022/session_001/，交付NeuralODE/results/latent/test90/。
+- 10/19 Latent4096作业7377已完成1000更新/best1000及3val评估（5090、40train、约921s训练含验证）。真实预测V25.546mV/Ca162.063nM，固定量程17.031%/13.505%，激活F1 .003115，精度未保住。单例完整GPU eager536.64ms、CUDAgraph47.65ms，加输出D2H整段106.48ms（暖2重5）。记忆NODE-LATENT-SCREEN-001，archive/latent_ode_train_20261019/screen_001/；原权重/旧数组不改，非90test结果。
+- 10/17低维NODE首轮9候选：训练40例/P1000拟合、3val全未来oracle。局部4096维重构1.727mV/14.182nM，即固定量程NRMSE1.1514%/1.1818%；激活F1 .91071，8192维误事件反增，不能称无损。未训练GPU计算52.077ms，非预测成绩。记忆NODE-LATENT-RECON-001，图/量化code/NeuralODE/results/ode_pure/latent_feasibility_20261017/、过程archive同名；E6 experimental。
+- 10/22正式图/三点曲线已整合NeuralODE/visualizetions/；7547复用2例逐像素一致、新导出1例通过。VISUAL-SCI-PORT-001，证据archive/visualizetions_20261022/session_001/；旧源码整理见progress/SOURCE_MAP。
+- 10/17心脏“毫秒级”文献计时对照追加references.md；区分LAT图、8维ODE与全场时序，并核查解码范围，无新模型实验。
 - 最小开放缺口：GAP-S1-1（闭包未检验）。
 - 活动路线：A5 区域记忆态 H（九组正式训练）；A1 AR 七组审计作对照。
 - 值得记住的阻塞路线：A4 直接时间查询（missing-tool，无严格选模开关）；A3 的协议差异未统一。
 
 ## 下一回合
-- 目标：跟踪 7188 及其余 8 组串行 → 7187 汇总；每组 best 测速及 60 例 val；与 AR 七组审计配对比较并写报告。
+- 目标：跟踪7186_2/7614的hard-H及后续6组串行 → 7187汇总；前两组已完成best测速/60val，新best的90test尚未运行；最终与AR七组按协议差异配对。
 - 验收：neural-ode-full500 的 C1–C5；不解除旧 7176/7177 依赖，不追加训练组。
 
 ## 证据指针

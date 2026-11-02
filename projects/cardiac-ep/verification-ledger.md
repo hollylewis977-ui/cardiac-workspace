@@ -1,6 +1,60 @@
 # 验证台账
 等级定义见 agents/core/research-core.md；目前没有条目经过 claim-audit，最高 proof-draft。
 
+## 2026-10-22：Latent250训练后90例三时刻误差
+
+- ID：`NODE-LATENT-TEST90-SNAP-001`；experimental，来源internal；单种子v10二维CRN，训练40例/验证选模3例，完整90test单帧误差；非独立复现、临床验证、全窗误差或90例测速。
+- 7440日志与最终report证实累计50000更新/250轮结束，最佳仍21600更新/第108轮；使用best.pt SHA13ca9a2b5ee57ec5ef912eef108263620a752a83410699207afaf0f25ad3ccc6，codec SHA7def785005f25d8f237d1f095dded4bf982b566453b51d3586c6c19e79845ad1。4096局部PCA+64记忆、RK4 2ms，未改模型/权重/基底或重新选模。
+- Slurm7548（5090）对batch022–024各30例，只输入0–500ms全251帧，自主生成502–1000ms全250帧，全部有限。在600/800/1000ms分别取单帧43573节点空间RMSE，V除150mV、Ca除1200nM后乘100，再对90例算术平均。结果V/Ca分别**9.6773882841%/7.7692521603%**、**13.3531644719%/12.7667077609%**、**14.4008284174%/16.7595747957%**；不是600–800ms等区间RMSE，也不是先平均场或合并病例后开方。
+- 原始binary16到固定float32归一化采用65536值查表后GPU精确取值，全部90例观测SHA与既有Pure冻结test90对应值相同。潜态ODE CUDAgraph与首个真实病例eager全250帧/4160状态逐位一致（max差0）；首例三时刻误差与原Latent图一致。后续每例独立重新编码历史并推进，无未来真值回灌。未将此控制升级独立数值复现，test在项目历史已开发暴露。
+- 实际保存270行CSV；同Slurm作业内后续CPU步骤用statistics重算均值与物理单位归一化通过。控制器COMPLETED/ExitCode0:0/38秒，完整作业14:16:56–14:17:34；35.27秒内部耗时包含输入准备/哈希/评分，不能除90冒充标准推理时延。CPU7549仅整理量化文件，无新预测。
+- 直接证据：`archive/latent_test90_snapshots_20261022/session_001/{summary.json,per_case_snapshots.csv,inputs.json,verified_summary.json,final_scontrol.txt,source/,SHA256SUMS,publication.json,training_completion/}`；正式量化交付`NeuralODE/results/latent/test90/{snapshot_nrmse.json,per_case_snapshots.csv}`，交付目录不含源码/日志/NPZ/校验清单。未新增活跃test或实验代码文件。
+
+## 2026-10-22：正式绘图代码收进NeuralODE
+
+- ID：`VISUAL-SCI-PORT-001`；partial-result，来源internal；验证维度code/既有预测图重现supported，不构成新模型精度或独立科学验证。
+- 用户要求保留拼写`visualizetions`。`NeuralODE/visualizetions/`自包含渲染器和批量入口，`NeuralODE/slurm/visualizetions.sbatch`提交；不再依赖外部绘图程序或旧快照运行器。现有模型、数据和权重未修改。
+- Slurm7547/254/RTX5090完成三阶段核查：15个Python源文件语法、两个CLI help和bash语法通过；8个核心加载/归一化/绘图函数AST与原版完全相同。复用原epoch246的b022_s00/b022_s01预测重绘，两例calcium.png与traces.png共4张图的RGBA像素和尺寸与原图完全相同，三点CSV及共享场/误差色标一致，未选b023_s13的CSV三行保留。
+- 当前统一代码从同一epoch246权重重新导出b022_s00再绘图通过，所有250帧误差与旧test90指标在rtol2e-5/atol1e-4物理mV/nM容差内一致；三时刻NRMSE也通过。重新推理不是原数组逐位复刻，不把这一步称像素相同；未重训或评估新病例。
+- NRMSE固定分母150mV/1200nM，三列600/800/1000ms、三行真值/预测/物理绝对误差；三点最近节点4610/16113/31927，曲线显示500ms锚点而评分只含502–1000ms。交付仅PNG/CSV/量化JSON，预测/源文件/命令/manifest留独立工作目录；可选90例模型比较用原Pure与旧ODE4的完整报告实际验证，不把不同训练协议归因于架构。
+- 直接证据：`archive/visualizetions_20261022/session_001/{verified_syntax.json,verified_reuse.json,verified_export.json,slurm-7547.out,allocation_7547.txt,final_scontrol.txt,completion.json,SHA256SUMS,source/,reference/,published_reuse/,published_export/,run_reuse/manifest.json,run_export/manifest.json}`；完整新预测NPZ保留服务器同会话run_export/predictions/。实时控制器确认COMPLETED、ExitCode0:0、运行40秒（12:19:47–12:20:27），与三阶段通过及末尾完成标记一致。源码与已核查冻结副本哈希一致，证据下载包SHA通过；已目视核查重绘Ca和三点曲线。无新增test文件或新增依赖。
+
+## 2026-10-20：原Pure246在5090的PECE速度中途记录
+
+- ID：`NODE-PURE-SPEED-5090-001`；experimental，仅已打印的预测时延观察，完整screen和90test未完成。
+- 7487/RTX5090，同一epoch246权重，3val/B1/暖2重5；15条RK4为3.354020–3.447771秒，15条PECE+CSR/high为1.621419–1.693563秒。约3.37→1.68秒/例、约2倍；差异同时包含积分器、CSR和matmul high，不归因PECE单因素。
+- 完整251帧历史编码+250帧V/Ca预测，GPU同步计时；排除数据准备、传输、有限性检查和评分。源代码在每条timing输出前验证有限性，已核查日志顺序对应两配置。首次结果延迟来自计时前完整reference事件/空间评分。
+- 11:44:01时7487仍RUNNING，screen报告与守卫尚未完成，无新90例精度结论；快测7488排队，无结果。直接证据`archive/ode_inference_speed_20261020_rtx5090/session_001/status_20261020_1145/{slurm-7487.out,scontrol_7487.txt,status.md}`与冻结source，不升级独立验证。
+- 12:00更新：screen守卫已通过；用户明确最终需要90test而非3val。7487内只读CPU进度汇总显示RK4测试12/90，均值3.384723599秒/例、中位3.354683998秒、模型合计40.616683秒，12例观测SHA匹配冻结对应子集，NFE2000；PECE测试未开始。部分均值不能当90例结果，也不能与验证集PECE直接拼接为test加速比。新证据`archive/ode_inference_speed_20261020_rtx5090/session_001/status_20261020_1201/{partial_metrics.json,summarize_progress.py,screen_verified.json}`；7488仍排队，无额外GPU测速重叠。
+
+## 2026-10-20：v10活动持续时间与原Pure误差分层
+
+- ID：`DATA-V10-ACTIVITY-001`；experimental，来源internal，进展experimental-signal；既有原始数据扫描的重新统计，非新模型预测或独立验证。
+- 范围：25个v10批次/750例的本地与服务器副本，大小及首1MiB/尾64KiB指纹全部相同；只证明这部分文件字节匹配，不冒充全量哈希。活动分层当前覆盖原90例test，依7374扫描的完整0–2000ms/2ms真值；7486达30分钟时限终止，750例新raw扫描未完成。
+- 定义：活动为保存帧有节点V>−20mV，上冲为V由≤−20跨到>−20。800ms无新上冲34/90=37.7778%；800ms时无活动且之后无上冲23/90=25.5556%，因此每个后续保存帧均无活动；1000ms后无上冲39/90=43.3333%。无上冲不等于复极结束，电活动阈值静默不等于Ca恒定或V为0。
+- 原Pure246、0–500ms输入/502–1000ms评分、病例平均RMSE：后1000ms无上冲39例V3.225973mV/Ca13.508013nM；其余51例7.437520/55.646079；后1500ms仍有上冲43例7.397442/55.256049。最后800–1000ms窗口，39例2.606808/15.098309，对51例9.991759/78.706797。分组使用未来真值，仅用于分层评分，不进入预测或权重选择。
+- 解释：混合均值受病例动力学组成影响；不证明现有模型无效、数据生成错误，亦不把阈值持续活动直接认证为折返或临床AF。2s以后为未观测/右删失，不能宣称永久终止。既有test已开发暴露，新数据按母轨迹分组并预先冻结划分。
+- 用户选择：持续与自行终止都保留，分层评估。D降低仅为待验证方案：实际D_code0.08，网格0.4mm；代码0.36mm/0.193注释与执行值不符。拟0.08/0.06/0.04相同训练初值配对，先CV/传播与时间步核查；尚未生成新数据或执行D扫描。
+- 直接证据：`archive/dataset_checks/activity_audit_20261020/{prior_test90_strata.json,file_verification.json,local_file_fingerprints.json,prior_test90_scan.csv,pure_epoch246_per_case.csv,conductivity_plan.json,source/}`；原始7374证据`archive/dataset_checks/quiescence_scan_20261019/`。重分层在7486分配内执行，未本地跑项目代码。
+
+## 2026-10-19：Latent4096真实训练与速度
+
+- ID：`NODE-LATENT-SCREEN-001`；experimental，来源internal；代码/GPU前后向supported，3val预测为有限短训观察，未达到替换现有模型的精度要求。
+- Slurm7377在5090上完成1000更新，best1000；40例train/P1000、固定3val，0–500ms历史自主预测502–1000ms全250帧，未看test。模型16区局部PCA总D4096、记忆64、MLP宽128、RK4 2ms；与原Pure的训练病例/预算不同，不归因单一架构因素。
+- 真实预测病例平均V/Ca RMSE **25.546219663mV / 162.063293383nM**，固定量程NRMSE **17.030813% / 13.505274%**；激活micro F1 **.003114889**（129匹配/82295真事件、533预测事件），下降 **.203696695**。这与此前oracle重构1.15%/1.18%是不同指标对象，不得混用。
+- 训练后best的sample14/B1完整历史投影＋GRU＋潜态ODE＋全场解码，暖2重5：普通GPU流程 **536.640770ms**，仅ODE CUDAgraph的完整流程 **47.647819ms**；完整graph流程加输出D2H共 **106.479629ms**。输入已在GPU，排除磁盘/H2D、评分、冷初始化；不是每帧时间或批摊销。
+- 直接证据：项目`archive/latent_ode_train_20261019/screen_001/{run/report.json,run/validation.csv,evaluation/report.json,preflight.json,slurm-7377.out,completion.json}`。权重保留服务器同会话run/best.pt及last.pt；源码冻结在source/及run/source。控制器记录已过保留期，以两阶段completed状态及末尾完成标记核验脚本结束，不补写sacct退出码。
+- 结论：训练后几十毫秒计算可行；当前预测与激活覆盖不足。只读复核确认best1000与计时口径，不升级独立数值复现等级，不据1000更新否定整个Neural ODE方法族。
+
+## 2026-10-19：PCA重构结论记忆（10/17实验，无新预测结果）
+
+- ID：`NODE-LATENT-RECON-001`；等级experimental，来源internal；表示重构supported，未来预测not-assessed。
+- 条件：v10二维CRN，train000–019中40例/P1000的1280快照拟合16个连通区域PCA，每区每通道128阶，总系数4096；固定val `batch020/sample14`、`batch021/sample16`、`batch020/sample05`，502–1000ms全部250帧/43573节点；训练与评估归一化沿用固定量程。
+- 数值：病例平均V重构RMSE **1.7271431088mV**，Ca **14.1819236887nM**。百分比是`100 × RMSE / 固定量程`，分母分别150mV、1200nM，故为 **1.1514287392% / 1.1818269741%**；不是丢弃方差比例、相对信号范数误差或总信息损失比例。
+- 事件限制：激活micro F1 **.9107103369**、下降 **.9524895629**；升到8192系数时场误差更低但激活F1降至.9067755257，不能把均方误差小概括为无损。未来真值先压缩再还原，仅为oracle诊断；没有证明从0–500ms预测未来的精度，也没有完成新模型训练。
+- 直接证据：项目`archive/latent_ode_feasibility_20261017/screen_local_highrank/report.json`中`local_128`及`source/`、`local_max_codec.pt`；三次运行命令在同archive的`completion.json`；量化交付`code/NeuralODE/results/ode_pure/latent_feasibility_20261017/{summary.json,candidates.csv}`。181项既有CPU重算存证为`independent_verification.json`，不升级为独立GPU预测复现。
+- 源码收尾：一次性筛选/汇总脚本从活跃code移出，迁移前全量副本与路径映射留`archive/source_reorganization_20261019/`；旧冻结实验包不改。继续使用的`codec.py`与`opnn.py`在`code/NeuralODE_Latent/`保留。
+
 | ID | 等级 | 有限结论 | 验证维度与证据 | 未覆盖范围 |
 |---|---|---|---|---|
 | SRC-001 | partial-result | 已定位 AR/PCA、Direct 和 v10 的实际入口与协议 | code/source-inspection：SOURCE_MAP.md 指向的源文件 | 未重新认证生成器物理精度、全部数据值或模型性能 |
@@ -139,5 +193,19 @@
 - prediction supported（有限范围）：90例batch022–024，输入0–500ms，完整502–1000ms/250帧/43573节点。病例平均V5.612517mV/Ca37.386250nM，激活事件F1 .889198、下降F1 .939110，首次激活漏检5.343321%、误激活1.477184%、匹配MAE5.234023ms；晚期V6.791614mV/Ca51.143119nM。相对旧ODE第4轮平均误差降低67.48%/68.36%，V90/90、Ca89/90改善；相对AR两场90/90改善。
 - code/data limited-supported：7275 GPU评估/测速完成exit0（21分25秒），7276 CPU汇总exit0（2秒）；冻结source与原manifest一致，checkpoint复制前后哈希一致。比较验证90唯一病例、250帧时间、阈值/容差、真值事件计数、persistence误差一致；只取AR部署free_clamp1，ODE不注入未来真值。不是全量原始数据哈希审计。
 - runtime supported（当前权重/该设备）：RTX4090、float32、batch1、3例各2预热5重复；完整rollout中位3.518086秒，P90 3.520400秒；仅网络编码/积分及输出，不含数据读取、传输、指标、绘图。完整90例评估子进程约1122.85秒。
+- 10/14绘图补充：Slurm7277 exit0/120秒，SCI重绘27PNG。重新导出固定batch022/sample00、01并与原test90逐帧指标核对；最大差异V2.45e-7mV/Ca1.40e-6nM以内。NPZ场图、三点与误差直方图统一固定分母，初始500ms不评分；90例比较只复用已核对的指标。56个下载产物哈希一致，抽查7张PNG显示正常。证据plots_sci_20261014/{manifest.json,artifact_sha256.txt,slurm_job_7277_final.txt,README.md}；这是绘图与两例一致性检查，不是独立90例复现，等级不变。
+- 绘图口径修正：7277空间标题使用整窗NRMSE，用户指出重复4.08%后，7278修正单帧标注；随后7279合图exit0/50秒，最新plots_sci_combined_20261014/。六组单帧值与保存指标一致，两例三时刻共享物理色标与原节点绝对误差上限；sample00 Ca1.303658/4.447405/6.856186%，sample01 Ca.537900/.540169/1.115443%。sample01 1000ms真实V[−80.375,−77.688]mV，低值均匀颜色有原始范围支持。27下载文件哈希核对；查看三张合图。用户要求尽量不写test，移除本轮新建的当前test源码，冻结旧运行证据保留；最新核查只用真实产物。原预测/90例指标及证据等级不变。
+- 参考PDF样式修正：7284程序正常完成13.567秒，两个绘图子进程exit0；33下载文件及提供的calcium.pdf原文件哈希核对一致，实际PDF渲染已查看。场viridis/绝对误差magma，3行类型×3列时间、原节点scatter、12×9英寸紧凑图，已覆盖原plots_sci_20261014/。共享显示范围V[−83.717552,22.25]mV/Ca[114.820046,1161.575317]nM，绝对误差上限60mV/696nM；单帧/全窗评分仍用原固定分母，六组值及250帧与原指标一致。最终Slurm控制器记录被清理、记账服务禁用，只保留分配记录/完成日志与查询输出；不声称独立复现或升级证据。
+- 10/15仅整理交付：原plots_sci_20261014/保留11PNG、3CSV和纯量化summary.json；其余35项材料移动到archive/neural_ode_full500/evaluation_20261014/plots_sci_20261014/，含原NPZ/source/manifest/日志。保留与移动的全部50文件本机/254哈希一致，归档映射及清单可追溯；历史运行路径记录不改写，后续重用入口改传归档目录。无新计算、科学结果或等级变化。
+- 10/19追加失效病例图：研究者要求另选一例可视化并量化时间。选batch023/sample13，它是本权重90例中全窗V RMSE最大者（13.784737mV/142.326962nM，激活事件F1 .570053，首次激活漏检1020/25734节点、误激活6725节点、匹配时间MAE31.873918ms）。Slurm7368（CPU分区+1张4090，4CPU/16G）exit0，程序14.551秒：rollout导出子进程7.7秒（含启动、数据映射、权重加载与NPZ写出）、绘图子进程5.1秒；250帧误差与test90/metrics.json逐帧一致，最大差1.77e-7mV/1.09e-6nM。单帧NRMSE V2.475792/9.265811/16.872185%、Ca1.646260/11.130819/22.931832%（600/800/1000ms）；逐帧V NRMSE在732ms越过5%、816ms越过10%，Ca在738ms越过5%、784ms越过10%、946ms越过20%，均在1000ms达最大。预测于800ms后在右下区域生成真值没有的激活波，三点A/B约950ms出现虚假上冲。该例显示范围单独计算（V[−82.843414,19.875]mV、Ca[126.691564,1111.984253]nM，误差上限84mV/792nM），与两例b022共享色标不同。纯推理时延沿用runtime条目（同权重同设备中位3.518086秒/例，RK4固定2000次RHS与病例内容无关），本次未另做计时作业。源码改动：code/NeuralODE_Snapshot/plot_snapshot_sci.py新增--cases（默认仍为原两例），slurm/snapshot_plot_sci.sbatch透传额外参数；运行区archive/neural_ode_full500/evaluation_20261014/plots_sci_20261019_b023s13/（22文件本机/254哈希一致），交付code/NeuralODE/results/ode_pure/eval/plots/b023_s13/与254的plots_sci_20261014/batch_023_sample13/，snapshot_errors.csv两端各追加3行。等级不变，单例图不提升证据。
+- 10/19数据集静息核查与真值时间线：对dataset/batch_022–024.npz只读memmap（Slurm7374扫描90例、7376打印b022_s01原值、7380画b023_s27真值；源码与输出在archive/dataset_checks/{quiescence_scan_20261019,truth_timeline_20261019}/，本机/254哈希一致）。b022_s01最后上冲624ms，1000–2000ms共21,830,073个V值无精确0，V[−80.6875,−77.6875]mV、Ca[119.15,236.51]nM，相邻帧最大变化0.0625mV；生成器二维循环无刺激，湮灭后无再激发。90例按最后上冲：<1000ms 39例、1084–1296ms 8例、≥1736ms 43例（其中2000ms帧仍有激活节点且最后上冲=2000ms者19例）。b023_s13最后上冲2000ms，属持续折返组，先前“半路湮灭”说法已更正。b023_s27（19例中全窗V RMSE中位，90例第58位，7.036mV/53.05nM）真值：上冲66723/53006/101617次（0–500/502–1000/1002–2000ms），激活节点500ms 23394峰、1100ms 667谷、1600ms 18242、2000ms 2128，三点各激活4次。交付results/waves/v10/b023_s27_*；预测图作业7379按研究者改口在PENDING取消。只读数据集事实，不改模型、指标或等级。
+- 10/23追加测试例正式图：研究者明确“先允许这次”本机运行（254不可连接；无远程作业提交/修改），按文件顺序选下一未绘病例batch022/sample02，不根据测试成绩筛图。同epoch246权重SHA256 5b2e93a0…521bc687，冻结main/opnn/utils哈希与原snapshot一致；RTX5070 Laptop、Torch2.10.0+cu128、原RK4/1ms、FP32 highest，观测0–500ms，自由预测502–1000ms。250帧空间RMSE与原test90最大差3.16e-7mV/1.29e-6nM；单帧NRMSE V2.952268/3.572279/1.507262%、Ca1.508612/1.192925/1.554270%（600/800/1000ms），整窗2.864710%/1.229194%，均为RMSE除以固定150mV/1200nM，不是相对真值范数。沿用b022_s00的三行三列viridis/magma、三点曲线与误差分布；本例显示色标单独取范围，不与旧病例直接比颜色。交付NeuralODE/results/ode_pure/eval/plots/b022_s02/四PNG、traces.csv、量化metadata.json，根snapshot_errors.csv保留旧9行并追加3行；六文件发布哈希一致，电压/钙/曲线已目视检查。源码、预测、manifest、首轮打印中文路径失败日志及UTF8后复用预测成功记录在archive/visualizetions_20261023/session_001/，未改变活跃模型源码/数据/权重。此为单例可视化与原指标一致性检查，experimental等级不变，非独立90例复现/新训练或速度结论。
 - evidence：results/neural_ode_full500/evaluation_20261014/{evaluation_plan.json,snapshot.json,checkpoint/best.pt,test90/metrics.json,inference/inference_benchmark.json,comparison/summary.json,comparison/report.md,comparison/per_case.csv,slurm_job_7275_final.txt,slurm_job_7276_final.txt,artifact_sha256.txt}；PNG已查看；下载5个关键哈希与远端一致。
 - 限制：单种子中途权重，不是500轮最终结果；AR监督/选模≤500ms，ODE监督可至1000ms且用4例未来窗选模，初始化/累计预算/clamp不同。旧第3/4轮为AR初始化后短微调，复用历史90例原始指标，未于本次重跑。测试集已开发暴露；未新增独立复现、dt收敛、患者个体化或不确定性证据；不宣称P0达标或架构因果。
+- 10/23同例原始数据核查：研究者质疑b022_s02波形近似不动，沿用本次同例本地出图授权作必要追查；直接只读NeuralODE/data/750sample/batch_v10/data/batch_022.npz、sample02，原shape[30,1001,43573]/float16。全部251个500–1000ms导出真值帧与原值经固定Scaler往返逐值一致，坐标亦逐值相同；往返引入的最大物理差7.63e-6mV/5.82e-5nM。0–2000ms原始真值最后上冲778ms（前帧≤−20、后帧>−20），最后V>−20节点存在于812ms；600/800/1000ms该节点数18785/152/0，1000ms V[−80,−77.4375]mV，1002–2000ms新上冲0，2000ms V[−80.6875,−80.4375]mV。说明此例活动终止，预测窗后段主要为复极和Ca回落，不支持持续旋转波展示；终止的具体生成机制未在本次归因。复用已冻结plot_truth_timeline.py生成每100ms原始真值场和三点/活动曲线，全部与模型预测分开，PNG/CSV/纯量化JSON交付NeuralODE/results/ode_pure/eval/plots/b022_s02/raw_truth/。直接证据、冻结源码、逐值核对、日志archive/dataset_checks/truth_b022s02_20261023/session_001/；experimental，单例数据事实与绘图一致性，非独立全数据认证或新模型精度结论。
+
+### NODE-PURE-INTERIM-001 — 2026-10-26 逐帧展示补充
+- 等级沿用experimental；同一epoch246/49400更新冻结模型，90例batch022–024、43573节点/例、0–500ms观测与502–1000ms评分；训练/选模可使用后半段标签。本次只汇总既有全测试报告，无新增推理。
+- 指标：每帧每例全节点空间RMSE后病例等权均值；NRMSE为100×RMSE/150mV或1200nM，阴影为病例间25%–75%分位，不是置信区间。600/800/1000ms V/Ca均值分别2.435807/1.209917%、3.998671/3.410920%、4.815508/4.837015%；这些是单帧均值，不能替代原全窗RMSE。
+- 证据：NeuralODE/results/ode_pure/eval/test90/time_errors/{nrmse_over_time.png,rmse_over_time.png,time_errors.csv,per_case_time_errors.csv,summary.json}；原metrics.json SHA256 5c86c9c822d258f51f0fd65356310242bc8ddfa84341b016a82b809a1b977242。CPU Slurm7610完成0:0，冻结archive/test90_time_errors_20261026/session_002/{source/,reference/,manifest.json,job_7610_final.txt}。90病例完整性、整窗重构、历史均值曲线、CSV/PNG与文件哈希一致；只读复核不提升为agent-verified。原中途权重/测试暴露/二维合成限制不变。
+

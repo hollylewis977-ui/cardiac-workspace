@@ -6,6 +6,7 @@
 - 最新关键事件：2026-10-13 Pure 基线 221/500 轮，4 例 val V 4.85 mV / Ca 26.4 nM、漏检 4.8%。
 - 最大障碍：激活 F1 在 A1/A3/A5 上都未达标；S1 闭包未检验。
 - 下一步：等九组完成，统一协议配对比较。
+- 2026-10-15新增探索计划：训练/推理共同目标下，先评估A4的空间压缩+直接latent时间查询，再比小latent离散推进及A6线性latent；只是候选优先级，不改变既有九组队列。计划见docs/neural_ode/design.md同日续节。
 
 ## 路线图
 ```mermaid
@@ -16,6 +17,7 @@ flowchart TD
     A3["A3 图 Neural ODE<br/>partial-result"]
     A4["A4 直接时间查询<br/>planned"]
     A5["A5 区域记忆态 H<br/>pushing"]
+    A6["A6 结构化线性潜态<br/>planned"]
     S1["S1 闭包<br/>conjecture"]
     S2["S2 一步算子累积<br/>experimental"]
     S3["S3 低维表示<br/>partial-result"]
@@ -32,6 +34,7 @@ flowchart TD
     P0 -->|decomposes-to| A3
     P0 -->|decomposes-to| A4
     P0 -->|decomposes-to| A5
+    P0 -->|decomposes-to| A6
     A1 -->|depends-on| S1
     A1 -->|depends-on| S2
     A2 -->|depends-on| S3
@@ -79,3 +82,9 @@ flowchart TD
 - 支持证据：NODE-GLOBAL-SCREEN-001、E3、E4。
 - 当前障碍：hard-H 时序退化（C2 候选）。
 - 下一步：九组完成后每组 best 的 60 例验证与测速。
+
+### A6 — 结构化线性潜态（2026-10-15探索提案）
+- 状态：planned，conjecture，无运行证据。
+- 核心机制：历史编码潜态后，以固定或病例条件化A的exp(τA)/K^m推进；减少非线性积分和长反传。
+- 障碍：GAP-A6-1，有限维线性闭包可能不足以表示波前/阻滞/再次激活；先查表示，再查动力学。
+- 下一步：与A4直接查询、小latent离散主干在共同表示和固定GPU时间下比较。预算仅草案，不新增或改动远程作业。
