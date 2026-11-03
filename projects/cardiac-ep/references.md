@@ -51,7 +51,7 @@
 
 ## 2026-10-17：现有权重加速调研
 
-范围为冻结 epoch246 PureGraphODE，不重训、不改归一化与图权重。历史 `code/NeuralODE/results/ode_pure/eval/inference.json` 的3.518秒纯网络基准来自RTX4090、PyTorch 2.11.0+cu130、CUDA13、float32、matmul `highest`、TF32 matmul关闭；它已使用 `model.eval()` 与 `inference_mode`，不能重复计作开关收益。本轮主代理核实的本地环境为Windows、RTX5070 Laptop 8GB、Python3.14、PyTorch 2.10.0+cu128、CUDA12.8；用户随后明确授权“请在本地实验”，本任务本地实验按该授权执行。以下官方链接据此改用2.10，须先在本机建立同权重原RK4基线，不能把历史4090耗时当本机基线或混合计算加速比。下表为文档机制与项目适配推断，不代表已取得实测收益；P1先核查实现与评估开销，P2再测同离散模型的执行后端，P3属于允许数值变化后才考虑的近似。
+范围为冻结 epoch246 PureGraphODE，不重训、不改归一化与图权重。历史 `archive/neural_ode_results_reorg_20261102/NeuralODE/results/ode_pure/eval/inference.json` 的3.518秒纯网络基准来自RTX4090、PyTorch 2.11.0+cu130、CUDA13、float32、matmul `highest`、TF32 matmul关闭；它已使用 `model.eval()` 与 `inference_mode`，不能重复计作开关收益。本轮主代理核实的本地环境为Windows、RTX5070 Laptop 8GB、Python3.14、PyTorch 2.10.0+cu128、CUDA12.8；用户随后明确授权“请在本地实验”，本任务本地实验按该授权执行。以下官方链接据此改用2.10，须先在本机建立同权重原RK4基线，不能把历史4090耗时当本机基线或混合计算加速比。下表为文档机制与项目适配推断，不代表已取得实测收益；P1先核查实现与评估开销，P2再测同离散模型的执行后端，P3属于允许数值变化后才考虑的近似。
 
 | 做法 | 能否完全保持数值 | 本项目适用条件与限制 | 原始来源、阅读范围 | 优先级 |
 |---|---|---|---|---|

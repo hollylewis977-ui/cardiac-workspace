@@ -66,7 +66,7 @@ flowchart BT
 | E3 | 六组 H 80 更新筛选 | prediction | experimental | NODE-GLOBAL-SCREEN-001 | 短预算 |
 | E4 | 九组 500×200 正式训练 | prediction | running | results/neural_ode_full500/session_20261009_recovery/ | GAP-E4-1 |
 | E5 | 冻结Pure epoch246保持Neural ODE的求解器加速与误差代价 | numerics/prediction | experimental | archive/ode_inference_speed_20261017/test90_paired_comparison_v2/；docs/neural_ode/design.md；90例模型2.46倍、全流程1.69倍 | 单卡每配置一次；Ca个例退化，阈值未定，非毫秒级；不替代P0验收 |
-| E6 | 低维NODE表示与完整计算成本可行性 | numerics | experimental | archive/latent_ode_feasibility_20261017/；code/NeuralODE/results/ode_pure/latent_feasibility_20261017/；9候选，局部4096维oracle1.727mV/14.182nM、激活F1 .91071，未训练GPU计算52.077ms | 仅40例拟合/3val重构/1例计时；动力学未训练，事件保真未解决，不支持预测或90例提速结论 |
+| E6 | 低维NODE表示与完整计算成本可行性 | numerics | experimental | archive/latent_ode_feasibility_20261017/；archive/neural_ode_results_reorg_20261102/NeuralODE/results/ode_pure/latent_feasibility_20261017/；9候选，局部4096维oracle1.727mV/14.182nM、激活F1 .91071，未训练GPU计算52.077ms | 仅40例拟合/3val重构/1例计时；动力学未训练，事件保真未解决，不支持预测或90例提速结论 |
 | C1 | nogru 场误差低但激活 F1 .179 | prediction | 候选，未认证 | AR-BASE-002 补充指标 | 待 failure-case-audit |
 | C2 | hard-H 激活时间 MAE 25.2 → 35.5 ms | prediction | 候选，未认证 | NODE-GLOBAL-SCREEN-001 | 待 failure-case-audit |
 

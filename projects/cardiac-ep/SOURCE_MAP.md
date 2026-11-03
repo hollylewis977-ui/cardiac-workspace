@@ -7,6 +7,7 @@
 
 | 路径 | 作用与适用场景 |
 |---|---|
+| NeuralODE/models/integrators.py、models/pure_ode.py、configs/default_config.py、models/trainer.py、slurm/train.sbatch | 可微Heun/PECE未来V/Ca/h/H积分；新训练可用`--ode-solver heun --ode-step-ms 1 --ode-checkpoint-interval 4 --no-ode-rhs-checkpoint --checkpoint-steps`，pece同理。默认RK4、resume保留权重内策略；不改历史H积分与既有冻结队列。NODE-PECE-TRAIN-001：同hard-H epoch134，实际连续20更新wall258.029→113.596/110.508s，Heun/PECE计算近等速，显存6.270/8.942GB；三组短训后3val均退化，无长期收敛结论。冻结archive/pece_training_20261102/，量化/PNG在NeuralODE/results/training_speed/pece_20261102/。此前Heun同权重60val见NODE-SOLVER-TRAIN-001及archive/solver_training_20261102/。 |
 | code/TC_GCN_server/main.py | inspect/train/rollout/evaluate/fit-pca/diagnose-pca；AR 与低维 PCA 共用训练评价；也支持 graph_neural_ode 两种模型类型 |
 | code/TC_GCN_server/model.py | ReferenceOperator（GRU+图传播的一步算子）；FixedPCACodec、PCALatentOperator |
 | code/TC_GCN_server/data.py | NpzBatch 内存映射、Scaler、参考图、可选几何 sidecar、数据切分 |
